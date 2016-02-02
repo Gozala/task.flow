@@ -1,0 +1,12 @@
+[ignore]
+.*/dist/.*
+
+[libs]
+./interface
+
+[include]
+
+[options]
+
+suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
+suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
