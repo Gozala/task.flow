@@ -15,6 +15,10 @@ export type Handle <x, y, a> =
   (input:x) =>
   Task<y, a>
 
+export type Execute <x, a> =
+  ( fail:(error:x) => void
+  , succeed:(value:a) => void
+  ) => void
 
 export type Suspend <x, a> =
   (resume:(task:Task<x, a>) => void) =>
@@ -32,9 +36,12 @@ declare export class Task <x, a>
   , capture <y> (handle:Handle<x, y, a>): Task<y, a>
   , format <y>(f:To<x, y>): Task<y, a>
   , spawn <never> (): Task<never, ThreadID>
-  , fork (fail:(error:x) => void, succeed:(value:a) => void):void
+  , fork (failed:(error:x) => void, succeeded:(value:a) => void):void
   }
 
+declare export function isTask
+  (value:any):
+  boolean
 
 declare export function fork <x, a>
   ( task:Task<x,a>
@@ -56,16 +63,8 @@ declare export function fail <x, a>
   (error:x):
   Task<x, a>
 
-declare export function act <x, a>
-  (suspend:Suspend <x, a>):
-  Task<x, a>
-
 declare export function task <x, a>
-  (fork:(fail:(error:x) => void, succeed:(value:a) => void) => void):
-  Task<x, a>
-
-declare export function future <x, a>
-  (promise:() => Promise<a, x>):
+  (execute:Execute<x, a>):
   Task<x, a>
 
 declare export function sleep <x>

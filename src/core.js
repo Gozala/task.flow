@@ -6,7 +6,7 @@
 
 /*::
 import type {Time, ThreadID} from "./task"
-import type {Then, Handle, To, Suspend} from "./task"
+import type {Then, Handle, To, Suspend, Execute} from "./task"
 
 type Task<error, value>
   = Succeed<error, value>
@@ -102,24 +102,6 @@ class Async /*::<x, a>*/ extends TaskDSL/*::<x, a>*/ {
 }
 Async.prototype.type = "Async"
 
-class Future /*::<x, a>*/ extends TaskDSL/*::<x, a>*/ {
-  /*::
-  promise: () => Promise<a, x>;
-  */
-  constructor(promise/*:() => Promise<a, x>*/) {
-    super()
-    this.promise = promise
-  }
-  await(resume/*:(task:Task<x, a>) => void*/)/*:void*/ {
-    this
-      .promise()
-      .then(succeed, fail)
-      .then(resume)
-  }
-}
-Future.prototype.type = "Future"
-
-
 class Capture /*::<x, y, a>*/ extends TaskDSL/*::<y, a>*/ {
   /*::
   task: Task<x, a>;
@@ -187,12 +169,8 @@ export const fail = /*::<x, a>*/
   (error/*:x*/)/*:Task<x,a>*/ =>
   new Fail(error)
 
-export const act = /*::<x, a>*/
-  (run/*:Suspend<x, a>*/)/*:Task<x,a>*/ =>
-  new Async(run)
-
 export const task = /*::<x, a>*/
-  (fork/*:(fail:(error:x) => void, succeed:(value:a) => void) => void*/)/*:Task<x,a>*/ =>
+  (execute/*:Execute<x, a>*/)/*:Task<x,a>*/ =>
   new Async
     ( resume =>
       fork
@@ -200,10 +178,6 @@ export const task = /*::<x, a>*/
       , value => resume(new Succeed(value))
       )
     )
-
-export const future = /*::<x, a>*/
-  (promise/*:() => Promise<a, x>*/)/*:Task<x, a>*/ =>
-  new Future(promise)
 
 export const chain = /*::<x, a, b>*/
   ( task/*:Task<x, a>*/
@@ -239,6 +213,18 @@ export const map2 = /*::<x, a, b, c>*/
   new Chain(a, a => new Chain(b, b => new Succeed(combine(a, b))))
 
 
+export const isTask =
+  (value/*:any*/) =>
+  ( task == null
+  ? false
+  : ( task.type === "Succeed" ||
+      task.type === "Fail" ||
+      task.type === "Async" ||
+      task.type === "Await" ||
+      task.type === "Chain" ||
+      task.type === "Capture"
+    )
+  )
 
 class Done /*::<error, value>*/ {
   /*::
@@ -305,31 +291,6 @@ const step = /*::<x, a>*/
         return new Running(task.value)
       }
     }
-    else if (task.type === "Async") {
-      let next = null
-
-      task.await(task => {
-        if (next != null && next.type === "Await") {
-          next.value = task
-          resume(root, end)
-        }
-        else {
-          next = task
-        }
-      })
-
-      if (next == null) {
-        next = new Await()
-      }
-
-      const routine =
-        ( next.type === "Await"
-        ? new Blocked(next)
-        : new Running(next)
-        )
-
-      return routine
-    }
     else if (task.type === "Chain" || task.type === "Capture") {
       let routine = new Running(task.task)
 
@@ -368,8 +329,41 @@ const step = /*::<x, a>*/
         throw TypeError('Invalid routine state')
       }
     }
+    else if (isTask(task)) {
+      let isResumed = false
+      let next = null
+
+      const resume = task => {
+        if (isResumed) {
+          throw TypeError(`Task can not be resumed more than once`)
+        }
+        else {
+          isResumed = true
+
+          if (next == null) {
+            step(root, next, end)
+          }
+          else {
+            next = task
+          }
+        }
+      }
+
+      task.frok
+      ( error => resume(new Fail(error))
+      , value => resume(new Succeed(error))
+      )
+
+      const routine =
+        ( next === null
+        ? new Blocked(next)
+        : new Running(next)
+        )
+
+      return routine
+    }
     else {
-      throw TypeError(`Unsupported task is passed ${task}`)
+      throw TypeError(`Invalid task was passed ${task}`)
     }
   }
 

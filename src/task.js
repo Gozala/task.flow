@@ -8,12 +8,13 @@ export type
   , Handle
   , To
   , Suspend
+  , Execute
   } from "./task"
 
 export
-  { succeed
+  { isTask
+  , succeed
   , fail
-  , act
   , task
   , future
   , chain
