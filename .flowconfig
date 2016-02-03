@@ -2,7 +2,6 @@
 .*/dist/.*
 
 [libs]
-./interface
 
 [include]
 

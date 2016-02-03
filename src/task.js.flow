@@ -24,19 +24,16 @@ export type Suspend <x, a> =
   (resume:(task:Task<x, a>) => void) =>
   void
 
-export type End <x, a> =
-  (result:Task<x,a>) => void
-
 
 
 declare export class Task <x, a>
-  { type: "Succeed" | "Fail" | "Async" | "Await" | "Chain" | "Capture"
+  { type: "Task"
   , chain <b> (then:Then<x, a, b>): Task<x, b>
   , map <b> (f:To<a, b>): Task<x, b>
   , capture <y> (handle:Handle<x, y, a>): Task<y, a>
   , format <y>(f:To<x, y>): Task<y, a>
   , spawn <never> (): Task<never, ThreadID>
-  , fork (failed:(error:x) => void, succeeded:(value:a) => void):void
+  , fork (onFail:(error:x) => void, onSucceed:(value:a) => void):void
   }
 
 declare export function isTask
@@ -45,13 +42,13 @@ declare export function isTask
 
 declare export function fork <x, a>
   ( task:Task<x,a>
-  , failed:(error:x) => void
-  , succeeded:(value:a) => void
+  , onFail:(error:x) => void
+  , onSucceed:(value:a) => void
   ):
   void
 
 declare export function perform <x, a>
-  (task:Task<x,a>):
+  (task:Task<x, a>):
   void
 
 
@@ -75,6 +72,9 @@ declare export function spawn <x, y, a>
   (task:Task<x, a>):
   Task<y, ThreadID>
 
+declare export function sequence <x, a>
+  (tasks:Array<Task<x, a>>):
+  Task<x, Array<a>>
 
 declare export function chain <error, from, to>
   ( task:Task<error, from>
@@ -88,20 +88,47 @@ declare export function capture <error, recovered, value>
   Task<recovered, value>
 
 declare export function map <error, from, to>
-  ( f:(input:from) => to
+  ( f:To<from, to>
   , task:Task<error, from>
   ):
   Task<error, to>
 
 declare export function format <error, formatted, value>
-  ( f:(input:error) => formatted
+  ( f:To<error, formatted>
   , task:Task<error, value>
   ):
   Task<formatted, value>
 
-declare export function map2 <x, a, b, c>
-  ( make:(a:a, b:b) => c
-  , a:Task<x,a>
-  , b:Task<x,b>
+declare export function map2 <error, a, b, value>
+  ( combine:(a:a, b:b) => value
+  , a:Task<error, a>
+  , b:Task<error, b>
   ):
-  Task<x, c>
+  Task<error, value>
+
+declare export function map3 <error, a, b, c, value>
+  ( combine:(a:a, b:b, c:c) => value
+  , a:Task<error, a>
+  , b:Task<error, b>
+  , c:Task<error, c>
+  ):
+  Task<error, value>
+
+declare export function map4 <error, a, b, c, d, value>
+  ( combine:(a:a, b:b, c:c, d:d) => value
+  , a:Task<error, a>
+  , b:Task<error, b>
+  , c:Task<error, c>
+  , d:Task<error, d>
+  ):
+  Task<error, value>
+
+declare export function map5 <error, a, b, c, d, e, value>
+  ( combine:(a:a, b:b, c:c, d:d, e:e) => value
+  , a:Task<error, a>
+  , b:Task<error, b>
+  , c:Task<error, c>
+  , d:Task<error, d>
+  , e:Task<error, e>
+  ):
+  Task<error, value>
