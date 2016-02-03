@@ -279,13 +279,13 @@ export const sequence = /*::<x, a>*/
   : tasks.length === 1
   ? new Map(tasks[0], value => [value])
   : tasks.length === 2
-  ? map2(Array, task[0], task[1])
+  ? map2(Array, tasks[0], tasks[1])
   : tasks.length === 3
-  ? map3(Array, task[0], task[1], task[2])
+  ? map3(Array, tasks[0], tasks[1], tasks[2])
   : tasks.length === 4
-  ? map4(Array, task[0], task[1], task[2], task[3])
+  ? map4(Array, tasks[0], tasks[1], tasks[2], tasks[3])
   : tasks.length === 5
-  ? map5(Array, task[0], task[1], task[2], task[3], task[4])
+  ? map5(Array, tasks[0], tasks[1], tasks[2], tasks[3], tasks[4])
   : tasks.reduce
     ( (result, task) => map2(push, result, task)
     , (succeed([])/*:Task<x, Array<a>>*/)
