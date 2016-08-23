@@ -1,4 +1,8 @@
-# value-task [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url]
+# outtask
+[![travis][travis-image]][travis-url]
+[![npm][npm-image]][npm-url]
+[![downloads][downloads-image]][downloads-url]
+[![js-standard-style][standard-image]][standard-url]
 
 Library allows describing asynchronous operations that may fail, like HTTP requests or writing to a database. Tasks also provide abstraction similar to light-weight threads, so you can have a bunch of tasks running at the same time and the runtime will hop between them if they are blocked.
 
@@ -103,7 +107,7 @@ Transform the error value. This can be useful if you need a bunch of error types
 
 ## Install
 
-    npm install value-task
+    npm install outtask
 
 ## Prior art
 
@@ -112,11 +116,13 @@ Transform the error value. This can be useful if you need a bunch of error types
 [flow]:http://flowtype.org
 [Elm]:http://elm-lang.org
 [Rust]:http://rust-lang.org
-[result-rust]:https://doc.rust-lang.org/std/result/index.html
 [elm-task]:http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Task
 
-[npm-url]: https://npmjs.org/package/value-task
-[npm-image]: https://img.shields.io/npm/v/value-task.svg?style=flat
-
-[travis-url]: https://travis-ci.org/Gozala/value-task
-[travis-image]: https://img.shields.io/travis/Gozala/value-task.svg?style=flat
+[travis-image]: https://travis-ci.org/Gozala/outtask.svg?branch=master
+[travis-url]: https://travis-ci.org/Gozala/outtask
+[npm-image]: https://img.shields.io/npm/v/outtask.svg
+[npm-url]: https://npmjs.org/package/outtask
+[downloads-image]: https://img.shields.io/npm/dm/outtask.svg
+[downloads-url]: https://npmjs.org/package/outtask
+[standard-image]:https://img.shields.io/badge/code%20style-standard-brightgreen.svg
+[standard-url]:http://standardjs.com/

@@ -1,13 +1,12 @@
 {
   "sourceMaps": "inline",
   "comments": false,
-  "sourceRoot": "./src",
+  "sourceRoot": "src",
   "presets": [
-    "es2015"
+    "es2015",
+    "babel-preset-flow"
   ],
   "plugins": [
-    "syntax-flow",
-    "transform-flow-strip-types",
-    "remove-comments"
+    "transform-class-properties"
   ]
 }

@@ -1,91 +1,72 @@
 /* @flow */
 
-import type {Task} from ".."
+import {Task} from "../"
 import test from "tape"
-import
-  { isTask
-  , fork
-  , perform
-  , succeed
-  , fail
-  , task
-  , map
-  , format
-  , chain
-  , capture
-  , sleep
-  , spawn
-  , sequence
-  , map2
-  , map3
-  , map4
-  , map5
-  } from ".."
 
 
 test("test isTask", test => {
   test.isEqual
-  ( isTask(null)
+  ( Task.isTask(null)
   , false
   )
 
   test.isEqual
-  ( isTask({})
+  ( Task.isTask({})
   , false
   )
 
   test.isEqual
-  ( isTask(6)
+  ( Task.isTask(6)
   , false
   )
 
   test.isEqual
-  ( isTask(succeed(5))
+  ( Task.isTask(Task.succeed(5))
   , true
   )
 
   test.isEqual
-  ( isTask(task((onFail, onSucceed) => void(0)))
+  ( Task.isTask(new Task((onFail, onSucceed) => void(0)))
   , true
   )
 
   test.isEqual
-  ( isTask(fail('Boom!'))
+  ( Task.isTask(Task.fail('Boom!'))
   , true
   )
 
   test.isEqual
-  ( isTask(succeed(5))
+  ( Task.isTask(Task.succeed(5))
   , true
   )
 
   test.isEqual
-  ( isTask(succeed(4).map(String))
+  ( Task.isTask(Task.succeed(4).map(String))
   , true
   )
 
   test.isEqual
-  ( isTask(succeed(4).chain(_ => succeed(5)))
+  ( Task.isTask(Task.succeed(4).chain(_ => Task.succeed(5)))
   , true
   )
 
   test.isEqual
-  ( isTask(fail(5).map(String))
+  ( Task.isTask(Task.fail(5).map(String))
   , true
   )
 
   test.isEqual
-  ( isTask(fail(5).chain(_ => succeed(4)))
+  ( Task.isTask(Task.fail(5).chain(_ => Task.succeed(4)))
   , true
   )
 
   test.isEqual
-  ( isTask(fail(5).format(String))
+  ( Task.isTask(Task.fail(5).format(String))
   , true
   )
 
   test.isEqual
-  ( isTask(fail(5).capture(_ => succeed(5)))
+  ( Task.isTask(Task.fail(5).capture(_ => Task.succeed(5)))
   , true
   )
 
@@ -93,7 +74,7 @@ test("test isTask", test => {
 })
 
 test("test succeed", test => {
-  succeed(5)
+  Task.succeed(5)
   .fork
   ( error => {
       test.fail("Should not error")
@@ -108,7 +89,7 @@ test("test succeed", test => {
 
 
 test("test fail", test => {
-  fail(5)
+  Task.fail(5)
   .fork
   ( error => {
       test.isEqual(error, 5)
@@ -124,7 +105,7 @@ test("test fail", test => {
 test("test fork several times", test => {
   let succeeded = 0
 
-  const task = succeed(5)
+  const task = Task.succeed(5)
 
   const onFail = error => {
     test.fail("Should have succeeded")
@@ -147,8 +128,8 @@ test("test fork several times", test => {
 
 test("test suceeded chain", test => {
   const task =
-    succeed(5)
-    .chain(x => succeed(x + 10))
+    Task.succeed(5)
+    .chain(x => Task.succeed(x + 10))
 
   const onFail = error => {
     test.fail("Should have succeeded")
@@ -165,8 +146,8 @@ test("test suceeded chain", test => {
 
 test("test fail from with in chain", test => {
   const task =
-    succeed(5)
-    .chain(x => fail(x + 10))
+    Task.succeed(5)
+    .chain(x => Task.fail(x + 10))
 
   const onSucceed = error => {
     test.fail("Should have failed")
@@ -184,9 +165,9 @@ test("test fail from with in chain", test => {
 
 test("test fail from with in chain & chain again", test => {
   const task =
-    succeed(5)
-    .chain(x => fail(x + 10))
-    .chain(x => succeed(x + 10))
+    Task.succeed(5)
+    .chain(x => Task.fail(x + 10))
+    .chain(x => Task.succeed(x + 10))
 
   const onSucceed = error => {
     test.fail("Should have failed")
@@ -204,10 +185,10 @@ test("test fail from with in chain & chain again", test => {
 test("test success chain", test => {
   const double = x => x * 2
   const task =
-    fail('Boom')
-    .chain(x => succeed(double(x)))
-    .chain(x => succeed(double(x)))
-    .chain(x => succeed(double(x)))
+    Task.fail('Boom')
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
 
   const onFail = error => {
     test.isEqual(error, 'Boom')
@@ -226,10 +207,10 @@ test("test success chain", test => {
 test("test fail chain", test => {
   const double = x => x * 2
   const task =
-    succeed(2)
-    .chain(x => succeed(double(x)))
-    .chain(x => succeed(double(x)))
-    .chain(x => succeed(double(x)))
+    Task.succeed(2)
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
 
   const onSucceed = value => {
     test.isEqual(value, 16)
@@ -247,8 +228,8 @@ test("test fail chain", test => {
 
 test("test chain failed task", test => {
   const task =
-    fail('Boom')
-    .chain(x => succeed(x + 10))
+    Task.fail('Boom')
+    .chain(x => Task.succeed(x + 10))
 
   const onSucceed = error => {
     test.fail("Should have failed")
@@ -266,8 +247,8 @@ test("test chain failed task", test => {
 
 test("test capture failed task", test => {
   const task =
-    fail('Boom')
-    .capture(x => succeed(`!${x}`))
+    Task.fail('Boom')
+    .capture(x => Task.succeed(`!${x}`))
 
   const onSucceed = value => {
     test.isEqual(value, '!Boom')
@@ -286,7 +267,7 @@ test("test capture failed task", test => {
 test("test task that succeeds", test => {
   let calls = 0
   let asserts = 0
-  const hi = task((fail, succeed) => {
+  const hi = new Task((fail, succeed) => {
     calls = calls + 1
     succeed({message: "hello"})
   })
@@ -315,9 +296,9 @@ test("test task that succeeds", test => {
 test("test task that fails", test => {
   let calls = 0
   let asserts = 0
-  const hi = task((fail, succeed) => {
+  const hi = new Task((fail, succeed) => {
     calls = calls + 1
-    fail({message: "Oops"})
+    Task.fail({message: "Oops"})
   })
 
   const onFail = error => {
@@ -352,7 +333,7 @@ test("test task success mapped twice", test => {
     test.end()
   }
 
-  task((fail, succeed) => {
+  new Task((fail, succeed) => {
     succeed(4)
   })
   .map(x => x + 10)
@@ -371,7 +352,7 @@ test("test task failure mapped twice", test => {
     test.end()
   }
 
-  task((fail, succeed) => {
+  new Task((fail, succeed) => {
     fail('Boom!')
   })
   .map(x => x + 10)
@@ -403,7 +384,7 @@ test("test task  fail twice", test => {
     test.end()
   }
 
-  const t1 = task((fail, succeed) => {
+  const t1 = new Task((fail, succeed) => {
     fail(Error("Boom"))
 
     test.throws
@@ -434,7 +415,7 @@ test("test task succeed twice", test => {
     test.end()
   }
 
-  const t1 = task((fail, succeed) => {
+  const t1 = new Task((fail, succeed) => {
     succeed({ beep: "bop", bar: "baz" })
 
     test.throws
@@ -465,7 +446,7 @@ test("test task succeed then fail", test => {
     test.end()
   }
 
-  const t1 = task((fail, succeed) => {
+  const t1 = new Task((fail, succeed) => {
     succeed({ beep: "bop", bar: "baz" })
 
     test.throws
@@ -499,7 +480,7 @@ test("test task fail then succeed", test => {
     test.end()
   }
 
-  const t1 = task((fail, succeed) => {
+  const t1 = new Task((fail, succeed) => {
     fail(Error("Boom"))
 
     test.throws
@@ -529,10 +510,10 @@ test("test map2 succeed", test => {
     test.end()
   }
 
-  map2
+  Task.map2
   ((a, b) => a + b
-  , succeed(3)
-  , succeed(4)
+  , Task.succeed(3)
+  , Task.succeed(4)
   )
   .fork(onFail, onSucceed)
 })
@@ -552,10 +533,10 @@ test("test map2 fail 1st", test => {
     test.end()
   }
 
-  map2
+  Task.map2
   ((a, b) => a + b
-  , fail("first fail")
-  , succeed(4)
+  , Task.fail("first fail")
+  , Task.succeed(4)
   )
   .fork(onFail, onSucceed)
 })
@@ -575,10 +556,10 @@ test("test map2 fail 2nd", test => {
     test.end()
   }
 
-  map2
+  Task.map2
   ((a, b) => a + b
-  , succeed(4)
-  , fail("second fail")
+  , Task.succeed(4)
+  , Task.fail("second fail")
   )
   .fork(onFail, onSucceed)
 })
@@ -599,10 +580,10 @@ test("test map2 fail both", test => {
     test.end()
   }
 
-  map2
+  Task.map2
   ((a, b) => a + b
-  , fail("first fail")
-  , fail("second fail")
+  , Task.fail("first fail")
+  , Task.fail("second fail")
   )
   .fork(onFail, onSucceed)
 })
@@ -621,7 +602,7 @@ test("test succeed format", test => {
     test.end()
   }
 
-  succeed('data')
+  Task.succeed('data')
   .format(text => text.toUpperCase())
   .fork(onFail, onSucceed)
 })
@@ -640,7 +621,7 @@ test("test fail format", test => {
     test.end()
   }
 
-  fail('Oops')
+  Task.fail('Oops')
   .format(text => text.toUpperCase())
   .fork(onFail, onSucceed)
 })
@@ -695,17 +676,17 @@ test("test spawn", test => {
   const messages = []
 
   const a =
-    sleep(20)
-    .chain(_ => succeed('A'))
+    Task.sleep(20)
+    .chain(_ => Task.succeed('A'))
     .map(onMessage)
 
   const b =
-    sleep(10)
-    .chain(_ => succeed('B'))
+    Task.sleep(10)
+    .chain(_ => Task.succeed('B'))
     .map(onMessage)
 
   const ab =
-    map2
+    Task.map2
     ( (a, b) => [a, b]
     , a.spawn()
     , b.spawn()
@@ -730,10 +711,10 @@ test("test sequence", test => {
     test.end()
   }
 
-  sequence
-  ( [ succeed(1)
-    , succeed(2)
-    , succeed(3)
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.succeed(2)
+    , Task.succeed(3)
     ]
   ).fork(onFail, onSucceed)
 })
@@ -749,10 +730,10 @@ test("test sequence fail first", test => {
     test.end()
   }
 
-  sequence
-  ( [ fail("first")
-    , succeed(2)
-    , succeed(3)
+  Task.sequence
+  ( [ Task.fail("first")
+    , Task.succeed(2)
+    , Task.succeed(3)
     ]
   ).fork(onFail, onSucceed)
 })
@@ -768,10 +749,10 @@ test("test sequence fail second", test => {
     test.end()
   }
 
-  sequence
-  ( [ succeed(1)
-    , fail('second')
-    , succeed(3)
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.fail('second')
+    , Task.succeed(3)
     ]
   ).fork(onFail, onSucceed)
 })
@@ -787,10 +768,10 @@ test("test sequence fail third", test => {
     test.end()
   }
 
-  sequence
-  ( [ succeed(1)
-    , fail('third')
-    , succeed(3)
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.fail('third')
+    , Task.succeed(3)
     ]
   ).fork(onFail, onSucceed)
 })
@@ -807,10 +788,10 @@ test("test sequence fail second & third", test => {
     test.end()
   }
 
-  sequence
-  ( [ succeed(1)
-    , fail('second')
-    , fail('third')
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.fail('second')
+    , Task.fail('third')
     ]
   ).fork(onFail, onSucceed)
 })
@@ -830,19 +811,19 @@ test("test sequence of 12", test => {
     test.end()
   }
 
-  sequence
-  ( [ succeed(1)
-    , succeed(2)
-    , succeed(3)
-    , succeed(4)
-    , succeed(5)
-    , succeed(6)
-    , succeed(7)
-    , succeed(8)
-    , succeed(9)
-    , succeed(10)
-    , succeed(11)
-    , succeed(12)
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.succeed(2)
+    , Task.succeed(3)
+    , Task.succeed(4)
+    , Task.succeed(5)
+    , Task.succeed(6)
+    , Task.succeed(7)
+    , Task.succeed(8)
+    , Task.succeed(9)
+    , Task.succeed(10)
+    , Task.succeed(11)
+    , Task.succeed(12)
     ]
   ).fork(onFail, onSucceed)
 })
@@ -857,19 +838,20 @@ test("test sequence of 12 with failed", test => {
     test.fail('Should fail')
     test.end()
   }
-  sequence
-  ( [ succeed(1)
-    , succeed(2)
-    , succeed(3)
-    , succeed(4)
-    , succeed(5)
-    , fail('sixth')
-    , succeed(7)
-    , succeed(8)
-    , fail('nineth')
-    , succeed(10)
-    , succeed(11)
-    , succeed(12)
+
+  Task.sequence
+  ( [ Task.succeed(1)
+    , Task.succeed(2)
+    , Task.succeed(3)
+    , Task.succeed(4)
+    , Task.succeed(5)
+    , Task.fail('sixth')
+    , Task.succeed(7)
+    , Task.succeed(8)
+    , Task.fail('nineth')
+    , Task.succeed(10)
+    , Task.succeed(11)
+    , Task.succeed(12)
     ]
   ).fork(onFail, onSucceed)
 })
