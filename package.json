@@ -31,7 +31,7 @@
     "flow": "flow check",
     "lint": "standard-flow",
     "start": "babel --watch --out-dir lib src",
-    "copy-types": "flow-copy-source src lib",
+    "copy-types": "flow-copy-source -v src lib",
     "build-node": "babel --out-dir lib src",
     "build": "npm run build-node && npm run copy-types",
     "prepublish": "npm run build && npm test"
