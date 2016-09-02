@@ -26,7 +26,7 @@ test('test succeed(x).capture', test => {
     Task.succeed(5)
     .capture(x => {
       test.fail('Catpure should not run unless task failed')
-      Task.succeed(-5)
+      return Task.succeed(-5)
     })
 
   const onSucceed = value => {

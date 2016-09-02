@@ -4,7 +4,7 @@ import Task from '../'
 import test from 'tape'
 
 test('test Process class', test => {
-  const process = Task.fork(Task.succeed(true), _ => null, _ => null)
+  const process = Task.fork(Task.succeed(true), _ => {}, _ => {})
   const Process = process.constructor
 
   test.ok(isClass(Process))
