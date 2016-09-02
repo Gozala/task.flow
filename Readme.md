@@ -11,7 +11,7 @@ Primary goal of this library is to provide an alternative to programming with si
 
 ## API
 
-### Task
+### `Task <error, value>`
 
 In nutshell `Task <error, value>` type represents a task that may fail with a specific `error` or succeed with a specific `value`.  
 
@@ -275,6 +275,67 @@ const fetch =
   })
 ```
 
+### `Process <exit, message>`
+
+`Process <error, value>` represents an execution of `Task <error, value>`. Many such processes can be `spawn` to execute different tasks concurrently. All the undocumented fields and methods of the `Process` class are considered internal implementation details that may change at any point without warning so do not depend on them in any way.
+
+
+#### `fork <x, a> (onSucceed:(v:a)=>void, onFail:(e:x)=>void):Process<x, a>`
+
+To run a task you need to provide success and failure handlers to a `.fork` which will start a light-weight process.
+
+```js
+const process =
+  Task
+  .sleep(50)
+  .chain(_ => Task.succeed(5))
+  .fork(console.log, console.error)
+```
+
+Note: Most of the time you can just ignore process when forking a task, although not always following sections will illustrate those cases.
+
+#### `kill: <x, y, a> (process:Process<x, a>) => Task<y, void>`
+
+Sometimes you spawn a task, but later due to some circumstances you decide to abort it. In such cases you can `kill` process to abort whatever task it was busy with. As in an example below HTTP request will be aborted while in flight.
+
+```js
+const process =
+  fetch('http://elm-lang.org')
+  .map(JSON.parse)
+  .fork(console.log, console.error)
+
+Task
+  .kill(process)
+  .fork(console.log, console.error)
+```
+
+#### `receive <x, a, msg> (onMessage:(m:msg) => Task<x, a>) => Task<x, a>`
+
+#### `send <x, y, a> (msg:a, process:Process<x, a>) => Task<y, void>`
+
+Different processes may want to send messages to each other. `receive` and `send` allow to do exactly that. In the following example one process will wait for the message, once arrived it will then fetch URL contained by message & print it out, the second process will just send message to the first on.
+
+```js
+const p1 =
+  Task
+  .receive(msg => fetch(msg.url))
+  .fork(console.log, console.error)
+
+const p2 =
+  Task
+  .send({url: 'http://elm-lang.org'}, p1)
+  .fork(console.log, console.error)
+```
+
+#### `spawn <x, y, a> (task:Task<x, a>) => Task<y, Process<x, a>>`
+
+Run a task in its own light-weight process. In the following example, `task1` and `task2` will be concurrent. If `task1` makes an HTTP request, then `task2` will do some work while request is pending.
+
+```js
+task1
+  .spawn()
+  .chain(process => task)
+```
 
 ## Install
 

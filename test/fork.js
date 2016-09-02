@@ -1,0 +1,55 @@
+/* @flow */
+
+import Task from '../'
+import test from 'tape'
+
+test('test fork succeeded task several times', test => {
+  let succeeded = 0
+
+  const task = Task.succeed(5)
+
+  const onFail = error => {
+    test.fail('Should have succeeded', error)
+    test.end()
+  }
+
+  const onSucceed = value => {
+    test.isEqual(value, 5)
+    succeeded = succeeded + 1
+    if (succeeded === 3) {
+      test.end()
+    }
+  }
+
+  task.fork(onSucceed, onFail)
+  task.fork(onSucceed, onFail)
+  task.fork(onSucceed, onFail)
+})
+
+test('test fork task that succeeds 3 times', test => {
+  let calls = 0
+  let asserts = 0
+  const hi = new Task((succeed, fail) => {
+    calls = calls + 1
+    succeed({message: 'hello'})
+  })
+
+  const onSucceed = value => {
+    test.isEquivalent(value, {message: 'hello'})
+    asserts = asserts + 1
+    test.isEqual(calls, asserts)
+
+    if (calls === 3) {
+      test.end()
+    }
+  }
+
+  const onFail = error => {
+    test.fail('Should have succeeed', error)
+    test.end()
+  }
+
+  hi.fork(onSucceed, onFail)
+  hi.fork(onSucceed, onFail)
+  hi.fork(onSucceed, onFail)
+})

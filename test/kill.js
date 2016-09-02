@@ -1,0 +1,574 @@
+/* @flow */
+
+import Task from '../'
+import test from 'tape'
+import Driver from './Driver'
+
+test('test kill task', test => {
+  const driver = new Driver()
+  const task = new Task(driver.execute, driver.abort)
+
+  const onSucceed = value => {
+    test.fail('Should not succeed', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('test kill after task succeed', test => {
+  const driver = new Driver()
+  const task = new Task(driver.execute, driver.abort)
+
+  const onSucceed = value => {
+    test.deepEqual(driver.state, {status: 'succeeded', value: 17})
+    test.equal(value, 17, 'task succeeded')
+
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+    test.end()
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'succeeded', value: 17})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.succeed(17)
+})
+
+test('test kill after task fails', test => {
+  const driver = new Driver()
+  const task = new Task(driver.execute, driver.abort)
+  const exit = Error('Boom!')
+
+  const onSucceed = value => {
+    test.fail('Should not succeed', value)
+    test.end()
+  }
+
+  const onFail = error => {
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.equal(error, exit)
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  test.deepEqual(driver.state, {status: 'pending'})
+  const process = task.fork(onSucceed, onFail)
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.fail(exit)
+})
+
+test('succeed then kill mapped task', test => {
+  const driver = new Driver()
+  const task =
+    new Task(driver.execute, driver.abort)
+    .map(x => x * 2)
+
+  const onSucceed = value => {
+    test.deepEqual(driver.state, {status: 'succeeded', value: 8})
+    test.equal(value, 16, 'task succeeded')
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+    test.end()
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'succeeded', value: 8})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.succeed(8)
+})
+
+test('kill then succeed mapped task', test => {
+  const driver = new Driver()
+  const task =
+    new Task(driver.execute, driver.abort)
+    .map(x => x * 2)
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    driver.succeed(8)
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('succeed then kill chained task', test => {
+  const driver = new Driver()
+  const task =
+    new Task(driver.execute, driver.abort)
+    .chain(x => Task.succeed(x * 2))
+
+  const onSucceed = value => {
+    test.deepEqual(driver.state, {status: 'succeeded', value: 8})
+    test.equal(value, 16, 'task succeeded')
+
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+    test.end()
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'succeeded', value: 8})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.succeed(8)
+})
+
+test('kill then succeed chained task', test => {
+  const driver = new Driver()
+  const task =
+    new Task(driver.execute, driver.abort)
+    .chain(x => Task.succeed(x * 2))
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    driver.succeed(8)
+
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('fail then kill formated task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .format(error => error.message)
+
+  const onSucceed = value => {
+    test.fail('Should have failed', value)
+    test.end()
+  }
+
+  const onFail = error => {
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.equal(error, exit.message, 'task failed')
+
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.fail(exit)
+})
+
+test('kill then fail formated task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .format(error => error.message)
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    driver.fail(exit)
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('fail then kill captured task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .capture(error => Task.succeed(error.message))
+
+  const onSucceed = value => {
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.equal(value, exit.message, 'task succeeded')
+
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const onFail = error => {
+    test.fail('Should have succeeded', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.fail(exit)
+})
+
+test('kill then fail captured task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .capture(error => Task.succeed(error.message))
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  test.deepEqual(driver.state, {status: 'pending'})
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    driver.fail(exit)
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('fail then kill recovered task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .recover(error => error.message)
+
+  const onSucceed = value => {
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.equal(value, exit.message, 'task succeeded')
+  }
+
+  const onFail = error => {
+    test.fail('Should have succeeded', error)
+  }
+
+  test.deepEqual(driver.state, {status: 'pending'})
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    test.deepEqual(driver.state, {status: 'failed', error: exit})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver.fail(exit)
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('kill then fail recovered task', test => {
+  const driver = new Driver()
+  const exit = new Error('exit')
+  const task =
+    new Task(driver.execute, driver.abort)
+    .recover(error => error.message)
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    driver.fail(exit)
+    test.deepEqual(driver.state, {status: 'cancelled'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('kill map2(a, b)', test => {
+  const driver1 = new Driver()
+  const driver2 = new Driver()
+  const task1 = new Task(driver1.execute, driver1.abort)
+  const task2 = new Task(driver2.execute, driver2.abort)
+  const task = Task.map2((a, b) => a + b, task1, task2)
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver1.state, {status: 'pending'})
+  test.deepEqual(driver2.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver1.state, {status: 'cancelled'})
+    test.deepEqual(driver2.state, {status: 'pending'})
+
+    driver1.succeed(1)
+
+    test.deepEqual(driver1.state, {status: 'cancelled'})
+    test.deepEqual(driver2.state, {status: 'pending'})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+  }
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('kill map2(a, b) after a succeeds', test => {
+  const driver1 = new Driver()
+  const driver2 = new Driver()
+  const task1 = new Task(driver1.execute, driver1.abort)
+  const task2 = new Task(driver2.execute, driver2.abort)
+
+  const onSucceed = value => {
+    test.fail('Should not have succeeded', value)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+  }
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+
+    test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+    test.deepEqual(driver2.state, {status: 'pending'})
+
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  const task = Task.map2((a, b) => a + b, task1, task2)
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver1.state, {status: 'pending'})
+  test.deepEqual(driver2.state, {status: 'pending'})
+
+  driver1.succeed(1)
+  test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+  test.deepEqual(driver2.state, {status: 'pending'})
+
+  Task.kill(process).fork(onKillSucceed, onKillFail)
+})
+
+test('kill map2(a, b) after a & b succeed', test => {
+  const driver1 = new Driver()
+  const driver2 = new Driver()
+  const task1 = new Task(driver1.execute, driver1.abort)
+  const task2 = new Task(driver2.execute, driver2.abort)
+  const task = Task.map2((a, b) => a + b, task1, task2)
+
+  const onSucceed = value => {
+    test.equal(value, 3)
+
+    test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+    test.deepEqual(driver2.state, {status: 'succeeded', value: 2})
+
+    Task.kill(process).fork(onKillSucceed, onKillFail)
+  }
+
+  const onFail = error => {
+    test.fail('Should not fail', error)
+    test.end()
+  }
+
+  test.deepEqual(driver1.state, {status: 'pending'})
+  test.deepEqual(driver2.state, {status: 'pending'})
+  const process = task.fork(onSucceed, onFail)
+  test.deepEqual(driver1.state, {status: 'pending'})
+  test.deepEqual(driver2.state, {status: 'pending'})
+
+  const onKillSucceed = value => {
+    test.ok(value == null, 'Kill succeeded with void')
+    test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+    test.deepEqual(driver2.state, {status: 'succeeded', value: 2})
+    test.end()
+  }
+
+  const onKillFail = error => {
+    test.fail('Kill should not have failed', error)
+    test.end()
+  }
+
+  driver1.succeed(1)
+  test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+  test.deepEqual(driver2.state, {status: 'pending'})
+
+  driver2.succeed(2)
+  test.deepEqual(driver1.state, {status: 'succeeded', value: 1})
+  test.deepEqual(driver2.state, {status: 'succeeded', value: 2})
+})
