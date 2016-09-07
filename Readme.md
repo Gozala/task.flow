@@ -9,7 +9,13 @@ Library allows describing asynchronous operations that may fail, like HTTP reque
 Primary goal of this library is to provide an alternative to programming with side-effects in JS, by programming with managed effects. Task abstraction just describes operation, performing it is a job of scheduler, which provides a handy separation. Think of tasks as an items on the todo list - they just describe things to do, who will do those tasks and when is a separate concern, concern of scheduler.
 
 
-## API
+## Usage
+
+All examples presume following import:
+
+```js
+import Task from 'outtask'
+```
 
 ### `Task <error, value>`
 
@@ -19,16 +25,16 @@ For example, maybe we have a task with the type `Task<string, User>`. This impli
 
 Note: Thinking about task types is useful as that gives very specific insight what the result of performing that task will look like. Library is written in [flow][] to take advantage of type checker and to let you catch all the possible errors associated with invalid uses of it early on.
 
-#### `succeed(a)`
+#### `succeed`
 
 A task that succeeds immediately when run with a value provided:
 
 ```js
 Task
   .succeed(42)
-  .fork(value => console.log(value), error => console.error(error))
+  .fork(console.log, econsole.error)
 
-// => 42
+// => Log: 42
 ```
 
 #### `fail`
@@ -37,7 +43,11 @@ A task that fails immediately when run with a value provided:
 
 
 ```js
-Task.fail("file not found")
+Task
+  .fail("file not found")
+  .fork(console.log, console.error)
+
+// => Error: "file not found"
 ```
 
 
@@ -154,8 +164,8 @@ Task
   .fail('Boom')
   .capture(error => Task.fail('Oops'))
   .fork(console.log, console.error)
-// => Error: Oops
 
+// => Error: Oops
 ```
 
 #### `format`
