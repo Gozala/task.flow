@@ -9,8 +9,6 @@ test('test exports', test => {
   test.ok(isFunction(exports.task), 'exports task function')
   test.ok(isFunction(exports.fork), 'exports fork function')
   test.ok(isFunction(exports.kill), 'exports kill function')
-  test.ok(isFunction(exports.send), 'exports send function')
-  test.ok(isFunction(exports.receive), 'exports recieve function')
   test.ok(isFunction(exports.isTask), 'exports isTask function')
   test.ok(isFunction(exports.isProcess), 'exports isProcess function')
   test.ok(isFunction(exports.succeed), 'exports succeed function')
@@ -41,8 +39,6 @@ test('test Task class', test => {
   test.equal(Task.task, exports.task, 'Task.task is exports.task')
   test.equal(Task.fork, exports.fork, 'Task.fork is exports.fork')
   test.equal(Task.kill, exports.kill, 'Task.kill is exports.kill')
-  test.equal(Task.send, exports.send, 'Task.send is exports.send')
-  test.equal(Task.receive, exports.receive, 'Task.receive is exports.receive')
   test.equal(Task.isTask, exports.isTask, 'Task.isTask is exports.isTask')
   test.equal(Task.isProcess, exports.isProcess,
             'Task.isProcess is exports.isProcess')

@@ -2,7 +2,7 @@
 
 import * as PreemptiveAnimationFrame from 'preemptive-animation-frame'
 import {Task, Succeed, Fail, Chain, Map, Capture, Recover, Format} from './Task/Core'
-import {Process, kill, send, receive, spawn, fork, isProcess} from './Process'
+import {Process, kill, spawn, fork, isProcess} from './Process'
 import type {Time, F2, F3, F4, F5, Abort, Fork} from './Task/Core'
 
 const Task$prototype$execute = Task.prototype.execute
@@ -136,10 +136,8 @@ Task.fork = fork
 Task.task = task
 Task.isTask = isTask
 Task.kill = kill
-Task.send = send
-Task.receive = receive
 Task.isProcess = isProcess
 
 export type {Process, Time, Abort, Fork}
-export {Task, kill, send, receive, spawn, fork, isProcess}
+export {Task, kill, spawn, fork, isProcess}
 export default Task

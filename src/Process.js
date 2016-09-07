@@ -10,7 +10,6 @@ export class Process <exit, message> {
   root: Task<exit, message>
   stack: TaskStack<exit, message>
   position: number
-  mailbox: Array<message>
   handle: *
   isAlive: boolean
   isBlocked: boolean
@@ -23,14 +22,11 @@ export class Process <exit, message> {
   static spawn: <x, y, a> (task:Task<x, a>) => Task<y, Process<x, a>>
   static fork: <x, y, a> (task:Task<x, a>, onSucceed:F1<a, void>, onFail:F1<x, void>) => Process<x, a>
   static kill: <error, exit, message> (process:Process<exit, message>) => Task<error, void>
-  static send: <error, exit, message> (payload:message, process:Process<exit, message>) => Task<error, void>
-  static receive: <error, message, value> (onMessage:(payload:message) => Task<error, value>) => Task<error, value>
   static isProcess: (value:*) => boolean
   constructor (
     task:Task<exit, message>,
     position:number,
     stack:TaskStack<exit, message>,
-    mailbox:Array<message>,
     handle:*,
     isAlive: boolean,
     isBlocked: boolean,
@@ -40,7 +36,6 @@ export class Process <exit, message> {
     this.root = task
     this.position = position
     this.stack = stack
-    this.mailbox = mailbox
     this.handle = handle
     this.isAlive = isAlive
     this.isBlocked = isBlocked
@@ -82,36 +77,9 @@ export class Process <exit, message> {
   kill <error> ():Task<error, void> {
     return kill(this)
   }
-  send <error> (payload:message):Task<error, void> {
-    return send(payload, this)
-  }
 }
 
 const Task$prototype$execute = Task.prototype.execute
-
-class Receive <error, message, value> extends Task<error, value> {
-  onMessage: (palyoad:message) => Task<error, value>
-  constructor (onMessage:(payload:message) => Task<error, value>) {
-    super(Task$prototype$execute)
-    this.onMessage = onMessage
-  }
-}
-
-class Send <error, exit, message> extends Task<error, void> {
-  payload: message
-  process: Process<exit, message>
-  constructor (process:Process<exit, message>, payload:message) {
-    super(Task$prototype$execute)
-    this.process = process
-    this.payload = payload
-  }
-  execute (succeed:(a:void) => void, fail:(x:error) => void) {
-    const {payload, process} = this
-    process.mailbox.push(payload)
-    enqueue(process)
-    succeed()
-  }
-}
 
 class Kill <error, exit, message> extends Task<error, void> {
   process: Process<exit, message>
@@ -138,7 +106,7 @@ class Spawn <x, y, a> extends Task <y, Process<x, a>> {
   }
   execute (succeed:(a:Process<x, a>) => void, fail:(x:y) => void):void {
     const process =
-      new Process(this.task, 0, [], [], null, true, true, null, null)
+      new Process(this.task, 0, [], null, true, true, null, null)
     enqueue(process)
     succeed(process)
   }
@@ -238,17 +206,6 @@ const step = <exit, message>
         continue
       }
 
-      if (task instanceof Receive) {
-        if (process.mailbox.length > 0) {
-          process.root = task.onMessage(process.mailbox.shift())
-
-          continue
-        } else {
-          process.isBlocked = true
-          break
-        }
-      }
-
       if (task instanceof Task) {
         process.isBlocked = true
         process.handle = task.execute(process.onSucceed, process.onFail)
@@ -266,7 +223,7 @@ export const spawn = <x, y, a>
 export const fork = <x, a>
   (task:Task<x, a>, onSucceed:F1<a, void>, onFail:F1<x, void>):Process<x, a> => {
     const process =
-      new Process(task, 0, [], [], null, true, true, onSucceed, onFail)
+      new Process(task, 0, [], null, true, true, onSucceed, onFail)
     enqueue(process)
     return process
   }
@@ -274,14 +231,6 @@ export const fork = <x, a>
 export const kill = <error, exit, message>
   (process:Process<exit, message>):Task<error, void> =>
   new Kill(process)
-
-export const send = <error, exit, message>
-  (payload:message, process:Process<exit, message>):Task<error, void> =>
-  new Send(process, payload)
-
-export const receive = <error, message, value>
-  (onMessage:(payload:message) => Task<error, value>):Task<error, value> =>
-  new Receive(onMessage)
 
 export const isProcess =
   (value:*):boolean =>
@@ -291,7 +240,5 @@ Process.isProcess = isProcess
 Process.fork = fork
 Process.spawn = spawn
 Process.kill = kill
-Process.send = send
-Process.receive = receive
 
 export default Process
