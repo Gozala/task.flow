@@ -87,7 +87,7 @@ class Kill <error, exit, message> extends Task<error, void> {
     super(Task$prototype$execute)
     this.process = process
   }
-  execute (succeed:(a:void) => void, fail:(x:error) => void) {
+  execute (succeed:(a:void) => void, fail:(x:error) => void):void {
     const {process} = this
     if (process.isAlive) {
       process.isAlive = false

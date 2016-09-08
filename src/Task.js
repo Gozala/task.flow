@@ -7,7 +7,7 @@ import type {Time, F2, F3, F4, F5, Abort, Fork} from './Task/Core'
 
 const Task$prototype$execute = Task.prototype.execute
 
-class Sleep <x> extends Task <x, void, number> {
+class Sleep <x> extends Task <x, void> {
   time: Time
   constructor (time:Time) {
     super(Task$prototype$execute)
@@ -21,7 +21,7 @@ class Sleep <x> extends Task <x, void, number> {
   }
 }
 
-class AnimationFrame <x> extends Task <x, Time, number> {
+class AnimationFrame <x> extends Task <x, Time> {
   constructor () {
     super(Task$prototype$execute)
   }
@@ -99,7 +99,7 @@ export const sequence = <x, a>
       : tasks.length === 5
       ? map5(Array, tasks[0], tasks[1], tasks[2], tasks[3], tasks[4])
       : tasks.reduce((result, task) => Task.map2(push, result, task),
-                      (Task.succeed([]):Task<x, Array<a>>))
+                      Task.succeed([]))
     return task
   }
 

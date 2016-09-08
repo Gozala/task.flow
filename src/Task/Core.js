@@ -28,9 +28,9 @@ export type Fork <x, a, handle> =
 export type Abort <handle> =
   (ref:handle) => void
 
-export class Task <x, a, handle=*> {
-  execute: Fork<x, a, handle>
-  abort: Abort<handle>
+export class Task <x, a> {
+  execute: (succeed:(a:a) => void, fail:(x:x) => void) => *
+  abort: (ref:*) => void
 
   static succeed: <x, a> (value:a) => Task<x, a>
   static fail: <x, a> (error:x) => Task<x, a>
@@ -54,7 +54,7 @@ export class Task <x, a, handle=*> {
   static task: <x, a, handle> (fork:Fork<x, a, handle>, abort:?Abort<handle>) => Task<x, a>
   static isTask: (value:*) => boolean
   static isProcess: (value:*) => boolean
-  constructor (execute:Fork<x, a, handle>, abort:?Abort<handle>) {
+  constructor <handle> (execute: Fork<x, a, handle>, abort:?Abort<handle>) {
     if (execute !== Task$prototype$execute) {
       this.execute = execute
     }
@@ -78,10 +78,10 @@ export class Task <x, a, handle=*> {
   recover (regain:(error:x) => a):Task<x, a> {
     return new Recover(this, regain)
   }
-  execute (succeed:(a:a) => void, fail:(x:x) => void):handle {
+  execute (succeed:(a:a) => void, fail:(x:x) => void):* {
     throw new Error('Task must implement execute method')
   }
-  abort (ref:handle):void {
+  abort ():void {
   }
 
   // Following two functions depend on `Process`. These methods are basically
