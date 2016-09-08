@@ -319,24 +319,6 @@ Task
   .fork(console.log, console.error)
 ```
 
-#### `receive <x, a, msg> (onMessage:(m:msg) => Task<x, a>) => Task<x, a>`
-
-#### `send <x, y, a> (msg:a, process:Process<x, a>) => Task<y, void>`
-
-Different processes may want to send messages to each other. `receive` and `send` allow to do exactly that. In the following example one process will wait for the message, once arrived it will then fetch URL contained by message & print it out, the second process will just send message to the first on.
-
-```js
-const p1 =
-  Task
-  .receive(msg => fetch(msg.url))
-  .fork(console.log, console.error)
-
-const p2 =
-  Task
-  .send({url: 'http://elm-lang.org'}, p1)
-  .fork(console.log, console.error)
-```
-
 #### `spawn <x, y, a> (task:Task<x, a>) => Task<y, Process<x, a>>`
 
 Run a task in its own light-weight process. In the following example, `task1` and `task2` will be concurrent. If `task1` makes an HTTP request, then `task2` will do some work while request is pending.

@@ -1,7 +1,7 @@
 {
   "name": "outtask",
   "id": "outtask",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Library for describing async operations as data & managing them as explicit effects",
   "keywords": [
     "task",
