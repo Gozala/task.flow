@@ -4,13 +4,13 @@ import {Task, Succeed, Fail, Then, Catch} from './Task/Core'
 import type {F1} from './Task/Core'
 
 type TaskStack <exit, message> =
-  Array<Catch<*, exit, message> | Then<exit, *, message>>
+  Array<Task<exit, message>>
 
 export class Process <exit, message> {
   root: Task<exit, message>
   stack: TaskStack<exit, message>
   position: number
-  handle: *
+  handle: ?number
   isAlive: boolean
   isBlocked: boolean
   succeed: ?(input:message) => void
@@ -27,7 +27,7 @@ export class Process <exit, message> {
     task:Task<exit, message>,
     position:number,
     stack:TaskStack<exit, message>,
-    handle:*,
+    handle:?number,
     isAlive: boolean,
     isBlocked: boolean,
     succeed: ?(input:message) => void,
@@ -79,12 +79,10 @@ export class Process <exit, message> {
   }
 }
 
-const Task$prototype$execute = Task.prototype.execute
-
 class Kill <error, exit, message> extends Task<error, void> {
   process: Process<exit, message>
   constructor (process:Process<exit, message>) {
-    super(Task$prototype$execute)
+    super()
     this.process = process
   }
   execute (succeed:(a:void) => void, fail:(x:error) => void):void {
@@ -92,7 +90,9 @@ class Kill <error, exit, message> extends Task<error, void> {
     if (process.isAlive) {
       process.isAlive = false
       process.isBlocked = false
-      process.root.abort(process.handle)
+      if (process.handle != null) {
+        process.root.abort(process.handle)
+      }
     }
     succeed()
   }
@@ -101,7 +101,7 @@ class Kill <error, exit, message> extends Task<error, void> {
 class Spawn <x, y, a> extends Task <y, Process<x, a>> {
   task: Task<x, a>
   constructor (task:Task<x, a>) {
-    super(Task$prototype$execute)
+    super()
     this.task = task
   }
   execute (succeed:(a:Process<x, a>) => void, fail:(x:y) => void):void {
@@ -118,103 +118,103 @@ const enqueue = <exit, message>
 
 const resume = <exit, message>
   (process:Process<exit, message>) => {
-    if (process.isBlocked) {
-      process.isBlocked = false
-      step(process)
-    }
+  if (process.isBlocked) {
+    process.isBlocked = false
+    step(process)
   }
+}
 
 const step = <exit, message>
   (process:Process<exit, message>):Process<exit, message> => {
-    while (process.isAlive) {
-      const task = process.root
-      if (task instanceof Succeed) {
+  while (process.isAlive) {
+    const task = process.root
+    if (task instanceof Succeed) {
         // If task succeeded skip all the error handling.
-        while (
+      while (
           process.position < process.stack.length &&
           process.stack[process.position] instanceof Catch
         ) {
-          process.position ++
-        }
-
-        // If end of the stack is reached then break
-        if (process.position >= process.stack.length) {
-          if (process.succeed != null) {
-            process.isAlive = false
-            process.succeed(task.value)
-          }
-          break
-        }
-
-        // Otherwise step into next task.
-        const then = process.stack[process.position++]
-        if (then instanceof Then) {
-          process.root = then.next(task.value)
-        }
-
-        continue
+        process.position ++
       }
 
-      if (task instanceof Fail) {
+        // If end of the stack is reached then break
+      if (process.position >= process.stack.length) {
+        if (process.succeed != null) {
+          process.isAlive = false
+          process.succeed(task.value)
+        }
+        break
+      }
+
+        // Otherwise step into next task.
+      const then = process.stack[process.position++]
+      if (then instanceof Then) {
+        process.root = then.next(task.value)
+      }
+
+      continue
+    }
+
+    if (task instanceof Fail) {
         // If task fails skip all the chaining.
-        while (
+      while (
           process.position < process.stack.length &&
           process.stack[process.position] instanceof Then
         ) {
-          process.position ++
-        }
+        process.position ++
+      }
 
         // If end of the stack is reached then break.
-        if (process.position >= process.stack.length) {
-          if (process.fail != null) {
-            process.isAlive = false
-            process.fail(task.error)
-          }
-          break
+      if (process.position >= process.stack.length) {
+        if (process.fail != null) {
+          process.isAlive = false
+          process.fail(task.error)
         }
-
-        // Otherwise step into next task.
-        const _catch = process.stack[process.position++]
-        if (_catch instanceof Catch) {
-          process.root = _catch.handle(task.error)
-        }
-
-        continue
-      }
-
-      if (task instanceof Then) {
-        if (process.position === 0) {
-          process.stack.unshift(task)
-        } else {
-          process.stack[--process.position] = task
-        }
-
-        process.root = task.task
-
-        continue
-      }
-
-      if (task instanceof Catch) {
-        if (process.position === 0) {
-          process.stack.unshift(task)
-        } else {
-          process.stack[--process.position] = task
-        }
-
-        process.root = task.task
-
-        continue
-      }
-
-      if (task instanceof Task) {
-        process.isBlocked = true
-        process.handle = task.execute(process.onSucceed, process.onFail)
         break
       }
+
+        // Otherwise step into next task.
+      const _catch = process.stack[process.position++]
+      if (_catch instanceof Catch) {
+        process.root = _catch.handle(task.error)
+      }
+
+      continue
     }
 
-    return process
+    if (task instanceof Then) {
+      if (process.position === 0) {
+        process.stack.unshift(task)
+      } else {
+        process.stack[--process.position] = task
+      }
+
+      process.root = task.task
+
+      continue
+    }
+
+    if (task instanceof Catch) {
+      if (process.position === 0) {
+        process.stack.unshift(task)
+      } else {
+        process.stack[--process.position] = task
+      }
+
+      process.root = task.task
+
+      continue
+    }
+
+    if (task instanceof Task) {
+      process.isBlocked = true
+      process.handle = task.execute(process.onSucceed, process.onFail)
+      break
+    }
   }
+
+  return process
+}
 
 export const spawn = <x, y, a>
   (task:Task<x, a>):Task<y, Process<x, a>> =>
@@ -222,11 +222,11 @@ export const spawn = <x, y, a>
 
 export const fork = <x, a>
   (task:Task<x, a>, onSucceed:F1<a, void>, onFail:F1<x, void>):Process<x, a> => {
-    const process =
+  const process =
       new Process(task, 0, [], null, true, true, onSucceed, onFail)
-    enqueue(process)
-    return process
-  }
+  enqueue(process)
+  return process
+}
 
 export const kill = <error, exit, message>
   (process:Process<exit, message>):Task<error, void> =>

@@ -22,15 +22,15 @@ export type F4 <arg1, arg2, arg3, arg4, out> =
 export type F5 <arg1, arg2, arg3, arg4, arg5, out> =
   (a:arg1, b:arg2, c:arg3, d:arg4, e:arg5) => out
 
-export type Fork <x, a, handle> =
-  (succeed:(a:a) => void, fail:(x:x) => void) => handle
+export type Fork <x, a> =
+  (succeed:(a:a) => void, fail:(x:x) => void) => ?number
 
-export type Abort <handle> =
-  (ref:handle) => void
+export type Abort =
+  (id:number) => void
 
 export class Task <x, a> {
-  execute: (succeed:(a:a) => void, fail:(x:x) => void) => *
-  abort: (ref:*) => void
+  _execute: Fork<x, a>
+  _abort: Abort
 
   static succeed: <x, a> (value:a) => Task<x, a>
   static fail: <x, a> (error:x) => Task<x, a>
@@ -51,16 +51,20 @@ export class Task <x, a> {
   static kill: <error, exit, message> (process:Process<exit, message>) => Task<error, void>
   static send: <error, exit, message> (payload:message, process:Process<exit, message>) => Task<error, void>
   static receive: <error, message, value> (onMessage:(incoming:message) => Task<error, value>) => Task<error, value>
-  static task: <x, a, handle> (fork:Fork<x, a, handle>, abort:?Abort<handle>) => Task<x, a>
+  static task: <x, a> (fork:Fork<x, a>, abort:?Abort) => Task<x, a>
   static isTask: (value:*) => boolean
   static isProcess: (value:*) => boolean
-  constructor <handle> (execute: Fork<x, a, handle>, abort:?Abort<handle>) {
-    if (execute !== Task$prototype$execute) {
-      this.execute = execute
-    }
+  constructor (execute:?Fork<x, a>, abort:?Abort) {
+    if (this.constructor === Task) {
+      if (execute == null) {
+        throw Error('To instantiate a task you must provide execution function')
+      } else {
+        this._execute = execute
+      }
 
-    if (abort != null) {
-      this.abort = abort
+      if (abort != null) {
+        this._abort = abort
+      }
     }
   }
   chain <b> (next:(a:a) => Task<x, b>):Task<x, b> {
@@ -78,10 +82,11 @@ export class Task <x, a> {
   recover (regain:(error:x) => a):Task<x, a> {
     return new Recover(this, regain)
   }
-  execute (succeed:(a:a) => void, fail:(x:x) => void):* {
-    throw new Error('Task must implement execute method')
+  execute (succeed:(a:a) => void, fail:(x:x) => void):?number {
+    return this._execute(succeed, fail)
   }
-  abort ():void {
+  abort (id:number):void {
+    return this._abort(id)
   }
 
   // Following two functions depend on `Process`. These methods are basically
@@ -96,14 +101,15 @@ export class Task <x, a> {
   fork (onSucceed:(a:a) => void, onFail:(x:x) => void):Process<x, a> {
     return Task.fork(this, onSucceed, onFail)
   }
+  then (onSucceed:(a:a) => void, onFail:(x:x) => void):Process<x, a> {
+    return this.fork(onSucceed, onFail)
+  }
 }
-
-const Task$prototype$execute = Task.prototype.execute
 
 export class Succeed <x, a> extends Task <x, a> {
   value: a
   constructor (value:a) {
-    super(Task$prototype$execute)
+    super()
     this.value = value
   }
   execute (succeed:(a:a) => void, fail:(x:x) => void):void {
@@ -114,7 +120,7 @@ export class Succeed <x, a> extends Task <x, a> {
 export class Fail <x, a> extends Task <x, a> {
   error: x
   constructor (error:x) {
-    super(Task$prototype$execute)
+    super()
     this.error = error
   }
   execute (succeed:(a:a) => void, fail:(x:x) => void):void {
@@ -124,17 +130,21 @@ export class Fail <x, a> extends Task <x, a> {
 
 export class Then <x, a, b> extends Task<x, b> {
   task: Task<x, a>
-  next: (input:a) => Task<x, b>
+  +next: (input:a) => Task<x, b>
   constructor (task:Task<x, a>) {
-    super(Task$prototype$execute)
+    super()
     this.task = task
   }
 }
 
 export class Chain <x, a, b> extends Then<x, a, b> {
+  _next: (input:a) => Task<x, b>
   constructor (task:Task<x, a>, next:(input:a) => Task<x, b>) {
     super(task)
-    this.next = next
+    this._next = next
+  }
+  next (input:a):Task<x, b> {
+    return this._next(input)
   }
 }
 
@@ -151,18 +161,21 @@ export class Map <x, a, b> extends Then<x, a, b> {
 
 export class Catch <x, y, a> extends Task<y, a> {
   task: Task<x, a>
-  handle: (error:x) => Task<y, a>
+  +handle: (error:x) => Task<y, a>
   constructor (task:Task<x, a>) {
-    super(Task$prototype$execute)
+    super()
     this.task = task
   }
 }
 
 export class Capture<x, y, a> extends Catch<x, y, a> {
-  handle: (error:x) => Task<y, a>
+  _handle: (error:x) => Task<y, a>
   constructor (task:Task<x, a>, handle:(error:x) => Task<y, a>) {
     super(task)
-    this.handle = handle
+    this._handle = handle
+  }
+  handle (error:x):Task<y, a> {
+    return this._handle(error)
   }
 }
 

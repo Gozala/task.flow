@@ -6,12 +6,18 @@ type State <error, value> =
   | {status: 'succeeded', value:value}
   | {status: 'failed', error:error}
 
+const state = {
+  pending: new Map(),
+  id: 0
+}
+
 export class Driver <error, value> {
+  id:number
   state: State<error, value>
   onSucceed: ?(message:value) => void
   onFail: ?(reason:error) => void
-  execute: (succeed:(message:value) => void, fail:(reason:error) => void) => Driver<error, value>
-  abort: (driver:Driver<error, value>) => void
+  execute: (succeed:(message:value) => void, fail:(reason:error) => void) => number
+  abort: (id:number) => void
   constructor () {
     this.state = {status: 'pending'}
     this.execute = this.execute.bind(this)
@@ -33,19 +39,27 @@ export class Driver <error, value> {
     }
   }
   succeed (message:value) {
+    state.pending.delete(this.id)
     this.setState({status: 'succeeded', value: message})
   }
   fail (reason:error) {
+    state.pending.delete(this.id)
     this.setState({status: 'failed', error: reason})
   }
-  abort (driver:Driver<error, value>) {
-    driver.setState({status: 'cancelled'})
+  abort (id:number):void {
+    const driver = state.pending.get(id)
+    if (driver != null) {
+      state.pending.delete(this.id)
+      driver.setState({status: 'cancelled'})
+    }
   }
-  execute (succeed:(message:value) => void, fail:(reason:error) => void) {
+  execute (succeed:(message:value) => void, fail:(reason:error) => void):number {
     this.onSucceed = succeed
     this.onFail = fail
     this.updateState()
-    return this
+    this.id = ++state.id
+    state.pending.set(this.id, this)
+    return this.id
   }
 }
 

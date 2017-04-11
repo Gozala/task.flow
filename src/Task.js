@@ -5,30 +5,25 @@ import {Task, Succeed, Fail, Chain, Map, Capture, Recover, Format} from './Task/
 import {Process, kill, spawn, fork, isProcess} from './Process'
 import type {Time, F2, F3, F4, F5, Abort, Fork} from './Task/Core'
 
-const Task$prototype$execute = Task.prototype.execute
-
 class Sleep <x> extends Task <x, void> {
   time: Time
   constructor (time:Time) {
-    super(Task$prototype$execute)
+    super()
     this.time = time
   }
   execute (succeed:(a:void) => void, fail:(x:x) => void):number {
     return setTimeout(succeed, this.time, void (0))
   }
-  cancel (id:number):void {
+  abort (id:number):void {
     clearTimeout(id)
   }
 }
 
 class AnimationFrame <x> extends Task <x, Time> {
-  constructor () {
-    super(Task$prototype$execute)
-  }
   execute (succeed:(a:Time) => void, fail:(x:x) => void):number {
     return PreemptiveAnimationFrame.requestAnimationFrame(succeed)
   }
-  cancel (id:number):void {
+  abort (id:number):void {
     PreemptiveAnimationFrame.cancelAnimationFrame(id)
   }
 }
@@ -41,12 +36,11 @@ export const fail = <x, a>
   (error:x):Task<x, a> =>
   new Fail(error)
 
-export const sleep = <x, _>
+export const sleep = <x, >
   (time:Time):Task<x, void> =>
   new Sleep(time)
 
-export const requestAnimationFrame = <x, _>
-  ():Task<x, Time> =>
+export const requestAnimationFrame = <x> ():Task<x, Time> =>
   new AnimationFrame()
 
 export const chain = <x, a, b>
@@ -87,7 +81,7 @@ export const map5 = <x, a, b, c, d, e, r>
 
 export const sequence = <x, a>
   (tasks:Array<Task<x, a>>):Task<x, Array<a>> => {
-    const task = tasks.length === 0 ? new Succeed([])
+  const task = tasks.length === 0 ? new Succeed([])
       : tasks.length === 1
       ? new Map(tasks[0], value => [value])
       : tasks.length === 2
@@ -100,17 +94,17 @@ export const sequence = <x, a>
       ? map5(Array, tasks[0], tasks[1], tasks[2], tasks[3], tasks[4])
       : tasks.reduce((result, task) => Task.map2(push, result, task),
                       Task.succeed([]))
-    return task
-  }
+  return task
+}
 
-const push = <value, _>
+const push = <value, >
   (items:Array<value>, item:value):Array<value> => {
-    items.push(item)
-    return items
-  }
+  items.push(item)
+  return items
+}
 
-export const task = <x, a, handle>
-  (fork:Fork<x, a, handle>, abort:?Abort<handle>):Task<x, a> =>
+export const task = <x, a>
+  (fork:Fork<x, a>, abort:?Abort):Task<x, a> =>
   new Task(fork, abort)
 
 export const isTask =
