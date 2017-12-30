@@ -4,7 +4,6 @@ import type { Thread, ThreadID } from "../Thread"
 import type { Poll } from "../Poll"
 import type { Future } from "./Future"
 import type { Task } from "../Task"
-import { wait } from "../Poll"
 import Pool from "../Pool"
 import type { Lifecycle } from "../Pool"
 
@@ -35,33 +34,33 @@ class Then<x, a, b> implements Future<x, b> {
   poll(): Poll<x, b> {
     if (this.right) {
       const right = this.right.poll()
-      if (right.isReady === true) {
+      if (right != null) {
         this.delete()
         return right
       } else {
-        return wait
+        return null
       }
     } else {
       const left = this.left.poll()
-      if (left.isReady === true) {
-        if (left.isOk === true) {
+      if (left != null) {
+        if (left.isOk) {
           this.right = this.handler
             .handle(left.value)
             .spawn(this.thread, this.threadID)
 
           const right = this.right.poll()
-          if (right.isReady === true) {
+          if (right != null) {
             this.delete()
             return right
           } else {
-            return wait
+            return null
           }
         } else {
           this.delete()
           return left
         }
       } else {
-        return wait
+        return null
       }
     }
   }

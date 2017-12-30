@@ -35,7 +35,7 @@ export default class Executor<x, a> implements Thread {
   }
   work() {
     const result = this.future.poll()
-    if (result.isReady) {
+    if (result != null) {
       this.delete()
     } else {
       this.isParked = true

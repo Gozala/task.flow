@@ -6,7 +6,7 @@ import Pool from "../Pool"
 import Kernel from "./Kernel"
 import type { Lifecycle } from "../Pool"
 import type { Succeed, Poll } from "../Poll"
-import { nil, wait } from "../Poll"
+import { nil } from "../Poll"
 
 class Timeout extends Kernel<empty, void> {
   time: number
@@ -36,11 +36,11 @@ class TimeoutFuture implements Future<empty, void> {
   }
   poll(): Poll<empty, void> {
     const { result } = this
-    if (result) {
+    if (result != null) {
       this.delete()
       return result
     } else {
-      return wait
+      return null
     }
   }
   recycle(lifecycle: Lifecycle) {

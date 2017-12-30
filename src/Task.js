@@ -6,7 +6,7 @@ import type { Poll, Succeed, Fail, Wait } from "./Poll"
 import type { Task } from "./Task/Task"
 import Executor from "./Thread/Executor"
 
-import { wait, nil } from "./Poll"
+import { nil } from "./Poll"
 import {
   succeed,
   fail,
@@ -29,7 +29,6 @@ export type { Task, Thread, ThreadID, Future, Poll, Succeed, Fail, Wait }
 export default {
   spawn: Executor.spawn,
   toPromise: Executor.toPromise,
-  wait,
   nil,
   succeed,
   fail,

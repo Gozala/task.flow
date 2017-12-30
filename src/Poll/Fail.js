@@ -1,13 +1,11 @@
 // @flow
 
-export interface Fail<x> {
-  isReady: true;
-  isOk: false;
-  error: x;
+export type Fail<x> = {
+  isOk: false,
+  error: x
 }
 
-class FailObject<x> implements Fail<x> {
-  isReady: true = true
+class FailObject<x> {
   isOk: false = false
   error: x
   constructor(error: x) {

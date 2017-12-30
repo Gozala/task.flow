@@ -2,9 +2,9 @@
 
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
-import type { Poll, Succeed, Fail } from "../Poll"
+import type { Poll } from "../Poll"
 import type { Task } from "../Task"
-import { wait, succeed, fail } from "../Poll"
+import { succeed, fail } from "../Poll"
 import Pool from "../Pool"
 import type { Lifecycle } from "../Pool"
 
@@ -23,7 +23,7 @@ class IO<x, a, handle> implements Future<x, a> {
   lifecycle: Lifecycle
   succeed: a => void
   fail: x => void
-  state: null | Succeed<a> | Fail<x>
+  state: Poll<x, a>
   constructor() {
     this.succeed = this.succeed.bind(this)
     this.fail = this.fail.bind(this)
@@ -46,10 +46,10 @@ class IO<x, a, handle> implements Future<x, a> {
       thread.notify(threadID)
     }
   }
-  fail(error: x): void {
+  fail(reason: x): void {
     const { thread, threadID, state } = this
     if (thread != null && state == null) {
-      this.state = fail(error)
+      this.state = fail(reason)
       thread.notify(threadID)
     }
   }
@@ -59,12 +59,12 @@ class IO<x, a, handle> implements Future<x, a> {
       this.delete()
       return state
     } else {
-      return wait
+      return null
     }
   }
   abort() {
     const { state, cancel, canceler } = this
-    if (state != null && state.isReady === false) {
+    if (state != null) {
       this.delete()
       cancel(canceler)
     }

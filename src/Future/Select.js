@@ -3,7 +3,6 @@
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
 import type { Poll } from "../Poll"
-import { wait } from "../Poll"
 import Pool from "../Pool"
 import type { Lifecycle } from "../Pool"
 
@@ -17,18 +16,18 @@ class Select<x, a> implements Future<x, a> {
   }
   poll(): Poll<x, a> {
     const left = this.left.poll()
-    if (left.isReady === true) {
+    if (left != null) {
       this.right.abort()
       this.delete()
       return left
     } else {
       const right = this.right.poll()
-      if (right.isReady === true) {
+      if (right != null) {
         this.left.abort()
         this.delete()
         return right
       } else {
-        return wait
+        return null
       }
     }
   }

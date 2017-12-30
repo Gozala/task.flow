@@ -3,7 +3,7 @@
 import type { Lifecycle } from "../Pool"
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "../Future"
-import type { Succeed, Fail, Wait, Poll } from "../Poll"
+import type { Succeed, Fail, Poll } from "../Poll"
 import type { Task } from "./Task"
 import type { Execute, Cancel } from "../Future/IO"
 import Pool from "../Pool"
@@ -108,15 +108,14 @@ export const Kernel = Object.freeze(
   }
 )
 
-class Failure<x, a> extends Kernel<x, a> implements Fail<x>, Future<x, a> {
-  isReady = true
+class Failure<x, a> extends Kernel<x, a> implements Future<x, a> {
   isOk = false
   error: x
   constructor(error: x) {
     super()
     this.error = error
   }
-  poll(): Fail<x> {
+  poll(): Poll<x, a> {
     return this
   }
   spawn(): Future<x, a> {
@@ -125,9 +124,7 @@ class Failure<x, a> extends Kernel<x, a> implements Fail<x>, Future<x, a> {
   abort() {}
 }
 
-class Success<x, a> extends Kernel<x, a>
-  implements Succeed<a>, Future<x, a>, Task<x, a> {
-  isReady = true
+class Success<x, a> extends Kernel<x, a> implements Future<x, a>, Task<x, a> {
   isOk = true
   value: a
   constructor(value: a) {
@@ -137,7 +134,7 @@ class Success<x, a> extends Kernel<x, a>
   spawn(): Future<x, a> {
     return this
   }
-  poll(): Succeed<a> {
+  poll(): Poll<x, a> {
     return this
   }
   abort() {}

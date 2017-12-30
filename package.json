@@ -1,9 +1,15 @@
 {
   "name": "task.flow",
   "version": "0.1.0",
-  "description":
-    "Library for describing async operations as data & managing them as explicit effects",
-  "keywords": ["task", "type", "flow", "promise", "future", "effects"],
+  "description": "Library for describing async operations as data & managing them as explicit effects",
+  "keywords": [
+    "task",
+    "type",
+    "flow",
+    "promise",
+    "future",
+    "effects"
+  ],
   "main": "lib/Task",
   "module": "src/Task",
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
@@ -30,16 +36,17 @@
     "build:types": "flow-copy-source --verbose src lib",
     "build:node": "babel --out-dir lib src",
     "build:api": "documentation readme --section=API src/match.js",
-    "build:docs":
-      "documentation build --document-exported src/** -f html --o docs",
+    "build:docs": "documentation build --document-exported src/** -f html --o docs",
     "build": "npm run build:node && npm run build:types",
     "prepublish": "npm run build && npm test",
     "precommit": "lint-staged",
-    "start":
-      "flow-copy-source --watch --verbose src lib & babel --watch --out-dir lib src"
+    "start": "flow-copy-source --watch --verbose src lib & babel --watch --out-dir lib src"
   },
   "lint-staged": {
-    "*.js": ["prettier --parser flow --no-semi --write", "git add"]
+    "*.js": [
+      "prettier --parser flow --no-semi --write",
+      "git add"
+    ]
   },
   "quokka": {
     "alias": {
@@ -47,10 +54,11 @@
     },
     "pro": true,
     "babel": true,
-    "plugins": ["alias-quokka-plugin"]
+    "plugins": [
+      "alias-quokka-plugin"
+    ]
   },
   "dependencies": {
-    "result.flow": "0.2.0",
     "unreachable": "0.2.0"
   }
 }

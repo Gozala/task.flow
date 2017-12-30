@@ -1,12 +1,13 @@
 // @flow
 
-import type { Wait } from "./Poll/Wait"
 import type { Succeed } from "./Poll/Succeed"
 import type { Fail } from "./Poll/Fail"
+import succeed from "./Poll/Succeed"
+import fail from "./Poll/Fail"
 
-export type { Wait, Fail, Succeed }
-export type Poll<x, a> = Succeed<a> | Fail<x> | Wait
+export type Wait = void | null
+export type Poll<x, a> = Wait | Fail<x> | Succeed<a>
+export type { Succeed, Fail }
 
-export { wait } from "./Poll/Wait"
-export { succeed, nil } from "./Poll/Succeed"
-export { fail } from "./Poll/Fail"
+export const nil: Succeed<void> = succeed()
+export { succeed, fail }

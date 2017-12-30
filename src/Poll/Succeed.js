@@ -1,12 +1,11 @@
 // @flow
 
-export interface Succeed<a> {
-  isReady: true;
-  isOk: true;
-  value: a;
+export type Succeed<a> = {
+  isOk: true,
+  value: a
 }
 
-class SucceedObject<a> implements Succeed<a> {
+class SucceedObject<a> {
   isReady: true = true
   isOk: true = true
   value: a

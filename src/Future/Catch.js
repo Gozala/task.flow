@@ -3,7 +3,6 @@
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
 import type { Task } from "../Task"
-import { wait } from "../Poll"
 import type { Poll } from "../Poll"
 import Pool from "../Pool"
 
@@ -25,16 +24,16 @@ class Catch<x, y, a> implements Future<y, a> {
   poll(): Poll<y, a> {
     if (this.right) {
       const right = this.right.poll()
-      if (right.isReady === true) {
+      if (right != null) {
         this.delete()
         return right
       } else {
-        return wait
+        return null
       }
     } else {
       const left = this.left.poll()
-      if (left.isReady === true) {
-        if (left.isOk === true) {
+      if (left != null) {
+        if (left.isOk) {
           this.delete()
           return left
         } else {
@@ -43,15 +42,15 @@ class Catch<x, y, a> implements Future<y, a> {
             .spawn(this.thread, this.threadID)
 
           const right = this.right.poll()
-          if (right.isReady === true) {
+          if (right != null) {
             this.delete()
             return right
           } else {
-            return wait
+            return null
           }
         }
       } else {
-        return wait
+        return null
       }
     }
   }

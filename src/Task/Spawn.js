@@ -7,7 +7,6 @@ import { succeed, Kernel } from "./Kernel"
 import Pool from "../Pool"
 import type { Lifecycle } from "../Pool"
 import type { Poll } from "../Poll"
-import { wait } from "../Poll"
 
 class Process {
   kill(): Task<empty, void> {
@@ -32,7 +31,7 @@ class SpawnFuture implements Future<empty, void> {
   lifecycle: Lifecycle
   abort() {}
   poll(): Poll<empty, void> {
-    return wait
+    return null
   }
   recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
