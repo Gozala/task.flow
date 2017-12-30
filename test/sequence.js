@@ -1,121 +1,84 @@
-/* @flow */
+// @flow
 
-import Task from '../'
-import test from 'tape'
+import Task from "../"
+import test from "blue-tape"
 
-test('test sequence', test => {
-  const onFail = _ => {
-    test.fail('Should succeeded')
-    test.end()
-  }
+test("test sequence", async test => {
+  const task = Task.sequence([
+    Task.succeed(1),
+    Task.succeed(2),
+    Task.succeed(3)
+  ])
 
-  const onSucceed = value => {
+  try {
+    const value = await Task.toPromise(task)
     test.isEquivalent(value, [1, 2, 3])
-
-    test.end()
+  } catch (error) {
+    test.fail("Should succeeded")
   }
+})
 
+test("test sequence fail first", async test => {
   const task = Task.sequence([
-    Task.succeed(1),
+    Task.fail("first"),
     Task.succeed(2),
     Task.succeed(3)
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.equal(error, "first")
+  }
 })
 
-test('test sequence fail first', test => {
-  const onFail = error => {
-    test.equal(error, 'first')
-    test.end()
-  }
-
-  const onSucceed = _ => {
-    test.fail('Should fail')
-    test.end()
-  }
-
+test("test sequence fail second", async test => {
   const task = Task.sequence([
-    Task.fail('first'),
-    Task.succeed(2),
+    Task.succeed(1),
+    Task.fail("second"),
     Task.succeed(3)
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.equal(error, "second")
+  }
 })
 
-test('test sequence fail second', test => {
-  const onFail = error => {
-    test.equal(error, 'second')
-    test.end()
-  }
-
-  const onSucceed = _ => {
-    test.fail('Should fail')
-    test.end()
-  }
-
+test("test sequence fail third", async test => {
   const task = Task.sequence([
     Task.succeed(1),
-    Task.fail('second'),
+    Task.fail("third"),
     Task.succeed(3)
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.equal(error, "third")
+  }
 })
 
-test('test sequence fail third', test => {
-  const onFail = error => {
-    test.equal(error, 'third')
-    test.end()
-  }
-
-  const onSucceed = _ => {
-    test.fail('Should fail')
-    test.end()
-  }
-
+test("test sequence fail second & third", async test => {
   const task = Task.sequence([
     Task.succeed(1),
-    Task.fail('third'),
-    Task.succeed(3)
+    Task.fail("second"),
+    Task.fail("third")
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.equal(error, "second")
+  }
 })
 
-test('test sequence fail second & third', test => {
-  const onFail = error => {
-    test.equal(error, 'second')
-    test.end()
-  }
-
-  const onSucceed = _ => {
-    test.fail('Should fail')
-    test.end()
-  }
-
-  const task = Task.sequence([
-    Task.succeed(1),
-    Task.fail('second'),
-    Task.fail('third')
-  ])
-
-  task.fork(onSucceed, onFail)
-})
-
-test('test sequence of 12', test => {
-  const onFail = _ => {
-    test.fail('Should succeeded')
-    test.end()
-  }
-
-  const onSucceed = value => {
-    test.isEquivalent(value, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-
-    test.end()
-  }
-
+test("test sequence of 12", async test => {
   const task = Task.sequence([
     Task.succeed(1),
     Task.succeed(2),
@@ -131,34 +94,34 @@ test('test sequence of 12', test => {
     Task.succeed(12)
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.isEquivalent(value, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+  } catch (error) {
+    test.fail("Should succeeded")
+  }
 })
 
-test('test sequence of 12 with failed', test => {
-  const onFail = error => {
-    test.equal(error, 'sixth')
-    test.end()
-  }
-
-  const onSucceed = _ => {
-    test.fail('Should fail')
-    test.end()
-  }
-
+test("test sequence of 12 with failed", async test => {
   const task = Task.sequence([
     Task.succeed(1),
     Task.succeed(2),
     Task.succeed(3),
     Task.succeed(4),
     Task.succeed(5),
-    Task.fail('sixth'),
+    Task.fail("sixth"),
     Task.succeed(7),
     Task.succeed(8),
-    Task.fail('nineth'),
+    Task.fail("nineth"),
     Task.succeed(10),
     Task.succeed(11),
     Task.succeed(12)
   ])
 
-  task.fork(onSucceed, onFail)
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.equal(error, "sixth")
+  }
 })

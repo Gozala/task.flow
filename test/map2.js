@@ -1,68 +1,55 @@
 /* @flow */
 
-import Task from '../'
-import test from 'tape'
+import Task from "../"
+import test from "blue-tape"
 
-test('test map2 succeed', test => {
-  const onSucceed = value => {
-    test.isEqual(value, 7)
-    test.end()
-  }
-
-  const onFail = _ => {
-    test.fail('Should have succeeded')
-    test.end()
-  }
-
-  Task
-    .map2((a, b) => a + b, Task.succeed(3), Task.succeed(4))
-    .fork(onSucceed, onFail)
+test("test map2 succeed", async test => {
+  const task = Task.map2((a, b) => a + b, Task.succeed(3), Task.succeed(4))
+  const value = await Task.toPromise(task)
+  test.isEqual(value, 7)
 })
 
-test('test map2 fail 1st', test => {
-  const onFail = error => {
-    test.isEqual(error, 'first fail')
-    test.end()
-  }
+test("test map2 fail 1st", async test => {
+  const task = Task.map2(
+    (a, b) => a + b,
+    Task.fail("first fail"),
+    Task.succeed(4)
+  )
 
-  const onSucceed = _ => {
-    test.fail('Should have failed')
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, "first fail")
   }
-
-  Task
-    .map2((a, b) => a + b, Task.fail('first fail'), Task.succeed(4))
-    .fork(onSucceed, onFail)
 })
 
-test('test map2 fail 2nd', test => {
-  const onFail = error => {
-    test.isEqual(error, 'second fail')
-    test.end()
-  }
+test("test map2 fail 2nd", async test => {
+  const task = Task.map2(
+    (a, b) => a + b,
+    Task.succeed(4),
+    Task.fail("second fail")
+  )
 
-  const onSucceed = _ => {
-    test.fail('Should have failed')
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, "second fail")
   }
-
-  Task
-    .map2((a, b) => a + b, Task.succeed(4), Task.fail('second fail'))
-    .fork(onSucceed, onFail)
 })
 
-test('test map2 fail both', test => {
-  const onFail = error => {
-    test.isEqual(error, 'first fail')
-    test.end()
-  }
+test("test map2 fail both", async test => {
+  const task = Task.map2(
+    (a, b) => a + b,
+    Task.fail("first fail"),
+    Task.fail("second fail")
+  )
 
-  const onSucceed = _ => {
-    test.fail('Should have failed')
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, "first fail")
   }
-
-  Task
-    .map2((a, b) => a + b, Task.fail('first fail'), Task.fail('second fail'))
-    .fork(onSucceed, onFail)
 })

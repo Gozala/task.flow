@@ -1,103 +1,103 @@
-/* @flow */
+// @flow
 
-import Task from '../'
-import test from 'tape'
+import Task from "../"
+import test from "blue-tape"
 
-test('test fail(x).capture(succeed)', test => {
-  const task =
-    Task.fail('Boom')
+test("test fail(x).capture(succeed)", async test => {
+  const task = Task.fail("Boom").capture(x => Task.succeed(`!${x}`))
+  const value = await Task.toPromise(task)
+  test.equal(value, "!Boom")
+})
+
+test("test succeed(x).capture", async test => {
+  const task = Task.succeed(5).capture(x => {
+    test.fail("Catpure should not run unless task failed")
+    return Task.succeed(-5)
+  })
+  const value = await Task.toPromise(task)
+
+  test.equal(value, 5)
+})
+
+test("test fail(x).capture(fail).capture(fail)", async test => {
+  const task = Task.fail("Boom!")
+    .capture(x => Task.fail(`${x}!`))
+    .capture(x => Task.fail(`${x}!`))
+
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed")
+  } catch (error) {
+    test.equal(error, "Boom!!!")
+  }
+})
+
+test("test fail(x).capture(fail).capture(succeed)", async test => {
+  const task = Task.fail("Boom!")
+    .capture(x => Task.fail(`${x}!`))
     .capture(x => Task.succeed(`!${x}`))
 
-  const onSucceed = value => {
-    test.isEqual(value, '!Boom')
-    test.end()
-  }
-
-  const onFail = error => {
-    test.fail('Should have succeeed', error)
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
+  const value = await Task.toPromise(task)
+  test.equal(value, "!Boom!!")
 })
 
-test('test succeed(x).capture', test => {
-  const task =
-    Task.succeed(5)
-    .capture(x => {
-      test.fail('Catpure should not run unless task failed')
-      return Task.succeed(-5)
-    })
+test("test fail(x).capture(succeed).capture(fail)", async test => {
+  const task = Task.fail("Boom!")
+    .capture(x => Task.succeed(`!${x}`))
+    .capture(x => Task.fail(`${x}!`))
 
-  const onSucceed = value => {
-    test.isEqual(value, 5)
-    test.end()
-  }
-
-  const onFail = error => {
-    test.fail('Should have succeeed', error)
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
+  const value = await Task.toPromise(task)
+  test.equal(value, "!Boom!")
 })
 
-test('test fail(x).capture(fail).capture(fail)', test => {
-  const task =
-    Task
-      .fail('Boom!')
-      .capture(x => Task.fail(`${x}!`))
-      .capture(x => Task.fail(`${x}!`))
+test("test io.fail(x).capture(succeed)", async test => {
+  const task = Task.io((succeed, fail) => fail("Boom")).capture(x =>
+    Task.succeed(`!${x}`)
+  )
 
-  const onSucceed = value => {
-    test.fail('Should have failed')
-    test.end()
-  }
+  const value = await Task.toPromise(task)
 
-  const onFail = error => {
-    test.equal(error, 'Boom!!!')
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
+  test.isEqual(value, "!Boom")
 })
 
-test('test fail(x).capture(fail).capture(succeed)', test => {
-  const task =
-    Task
-      .fail('Boom!')
-      .capture(x => Task.fail(`${x}!`))
-      .capture(x => Task.succeed(`!${x}`))
+test("test io.succeed(x).capture", async test => {
+  const task = Task.io((succeed, fail) => succeed(5)).capture(x => {
+    test.fail("Catpure should not run unless task failed")
+    return Task.succeed(-5)
+  })
 
-  const onSucceed = value => {
-    test.equal(value, '!Boom!!')
-    test.end()
-  }
-
-  const onFail = error => {
-    test.fail('Should have succeeded', error)
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
+  const value = await Task.toPromise(task)
+  test.isEqual(value, 5)
 })
 
-test('test fail(x).capture(succeed).capture(fail)', test => {
-  const task =
-    Task
-      .fail('Boom!')
-      .capture(x => Task.succeed(`!${x}`))
-      .capture(x => Task.fail(`${x}!`))
+test("test io.fail(x).capture(fail).capture(fail)", async test => {
+  const task = Task.io((succeed, fail) => fail("Boom!"))
+    .capture(x => Task.fail(`${x}!`))
+    .capture(x => Task.fail(`${x}!`))
 
-  const onSucceed = value => {
-    test.equal(value, '!Boom!')
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed")
+  } catch (error) {
+    test.equal(error, "Boom!!!")
   }
+})
 
-  const onFail = error => {
-    test.fail('Should have succeeded', error)
-    test.end()
-  }
+test("test io.fail(x).capture(fail).capture(succeed)", async test => {
+  const task = Task.io((succeed, fail) => fail("Boom!"))
+    .capture(x => Task.fail(`${x}!`))
+    .capture(x => Task.succeed(`!${x}`))
 
-  task.fork(onSucceed, onFail)
+  const value = await Task.toPromise(task)
+
+  test.equal(value, "!Boom!!")
+})
+
+test("test io.fail(x).capture(succeed).capture(fail)", async test => {
+  const task = Task.io((succeed, fail) => fail("Boom!"))
+    .capture(x => Task.succeed(`!${x}`))
+    .capture(x => Task.fail(`${x}!`))
+
+  const value = await Task.toPromise(task)
+  test.equal(value, "!Boom!")
 })

@@ -1,11 +1,14 @@
 [ignore]
-.*/node_modules/kefir/.*
+.*/node_modules/babel.*
+.*/node_modules/tap/*
+.*/node_modules/documentation/*
+<PROJECT_ROOT>/drafts/*
 
 [libs]
 
 [include]
 
 [options]
-
+module.name_mapper='task.flow' -> '<PROJECT_ROOT>/src/Task'
 suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
 suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore

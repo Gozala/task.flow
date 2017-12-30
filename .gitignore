@@ -1,1 +1,7 @@
 lib
+dist
+drafts
+!src/**/*.js
+!src/**/*.flow
+!test/**/*.js
+!test/**/*.flow

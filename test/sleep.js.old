@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import Task from '../'
 import test from 'tape'

@@ -1,51 +1,56 @@
 {
-  "name": "outtask",
-  "id": "outtask",
+  "name": "task.flow",
   "version": "0.1.0",
-  "description": "Library for describing async operations as data & managing them as explicit effects",
-  "keywords": [
-    "task",
-    "type",
-    "flow",
-    "promise",
-    "future",
-    "effects"
-  ],
+  "description":
+    "Library for describing async operations as data & managing them as explicit effects",
+  "keywords": ["task", "type", "flow", "promise", "future", "effects"],
+  "main": "lib/Task",
+  "module": "src/Task",
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
-  "homepage": "https://github.com/Gozala/outtask",
-  "main": "./lib/Task.js",
+  "repository": "https://github.com/Gozala/task.flow",
+  "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-flow": "^6.23.0",
-    "babel-register": "^6.24.1",
-    "flow-bin": "^0.43.1",
-    "flow-copy-source": "1.1.0",
-    "standard-flow": "1.0.0",
-    "tape": "^4.6.3"
+    "alias-quokka-plugin": "^0.1.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-flow-node": "^1.0.2",
+    "babel-register": "^6.26.0",
+    "blue-tape": "^1.0.0",
+    "documentation": "^5.3.1",
+    "flow-bin": "^0.61.0",
+    "flow-copy-source": "^1.2.1",
+    "husky": "^0.14.0",
+    "lint-staged": "^6.0.0",
+    "prettier": "^1.9.2"
   },
   "scripts": {
-    "test": "npm run flow && npm run lint && npm run tape",
-    "tape": "tape -r babel-register test/**/*.js",
-    "flow": "flow check",
-    "lint": "standard-flow",
-    "start": "babel --watch --out-dir lib src",
-    "copy-types": "flow-copy-source -v src lib",
-    "build-node": "babel --out-dir lib src",
-    "build": "npm run build-node && npm run copy-types",
-    "prepublish": "npm run build && npm test"
+    "test": "npm run test:flow && npm run test:tape",
+    "test:tape": "blue-tape -r babel-register 'test/**/*.js'",
+    "test:flow": "flow check",
+    "build:clear": "rm -rf lib",
+    "build:types": "flow-copy-source --verbose src lib",
+    "build:node": "babel --out-dir lib src",
+    "build:api": "documentation readme --section=API src/match.js",
+    "build:docs":
+      "documentation build --document-exported src/** -f html --o docs",
+    "build": "npm run build:node && npm run build:types",
+    "prepublish": "npm run build && npm test",
+    "precommit": "lint-staged",
+    "start":
+      "flow-copy-source --watch --verbose src lib & babel --watch --out-dir lib src"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Gozala/outtask.git",
-    "web": "https://github.com/Gozala/outtask"
+  "lint-staged": {
+    "*.js": ["prettier --parser flow --no-semi --write", "git add"]
   },
-  "bugs": {
-    "url": "http://github.com/Gozala/outtask/issues/"
+  "quokka": {
+    "alias": {
+      "task.flow": "src/Task"
+    },
+    "pro": true,
+    "babel": true,
+    "plugins": ["alias-quokka-plugin"]
   },
-  "license": "MPL-2.0",
   "dependencies": {
-    "preemptive-animation-frame": "^0.1.0"
+    "result.flow": "0.2.0",
+    "unreachable": "0.2.0"
   }
 }

@@ -1,16 +1,11 @@
 /* @flow */
 
-import Task from '../'
-import test from 'tape'
+import Task from "../"
+import test from "blue-tape"
 
-test('test succeed', test => {
-  Task
-    .succeed(5)
-    .fork(value => {
-      test.isEqual(value, 5)
-      test.end()
-    }, error => {
-      test.fail('Should not error', error)
-      test.end()
-    })
+test("test succeed", async test => {
+  const task = Task.succeed(5)
+  const value = await Task.toPromise(task)
+
+  test.isEqual(value, 5)
 })

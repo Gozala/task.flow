@@ -1,120 +1,153 @@
 /* @flow */
 
-import Task from '../'
-import test from 'tape'
+import Task from "../"
+import test from "blue-tape"
 
-test('test suceeded(x).chain', test => {
-  const task =
-    Task.succeed(5)
-    .chain(x => Task.succeed(x + 10))
+test("test suceeded(x).chain", async test => {
+  const task = Task.succeed(5).chain(x => Task.succeed(x + 10))
 
-  const onFail = error => {
-    test.fail('Should have succeeded', error)
-    test.end()
-  }
+  const value = await Task.toPromise(task)
 
-  const onSucceed = value => {
-    test.isEqual(value, 15)
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
+  test.isEqual(value, 15)
 })
 
-test('test failed(x).chain', test => {
-  const task =
-    Task
-      .fail('Boom')
-      .chain(x => Task.succeed(x + 10))
+test("test failed(x).chain", async test => {
+  const task = Task.fail("Boom").chain(x => Task.succeed(x + 10))
 
-  const onSucceed = value => {
-    test.fail('Should have failed', value)
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, "Boom")
   }
-
-  const onFail = error => {
-    test.isEqual(error, 'Boom')
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
 })
 
-test('test return fail(x) from .chain', test => {
-  const task =
-    Task.succeed(5)
-    .chain(x => Task.fail(x + 10))
+test("test return fail(x) from .chain", async test => {
+  const task = Task.succeed(5).chain(x => Task.fail(x + 10))
 
-  const onSucceed = value => {
-    test.fail('Should have failed', value)
-    test.end()
-  }
+  try {
+    const value = await Task.toPromise(task)
 
-  const onFail = error => {
+    test.fail("Should have failed", value)
+  } catch (error) {
     test.isEqual(error, 15)
-    test.end()
   }
-
-  task.fork(onSucceed, onFail)
 })
 
-test('test return fail() then succeed() from .chain', test => {
-  const task =
-    Task.succeed(5)
+test("test return fail() then succeed() from .chain", async test => {
+  const task = Task.succeed(5)
     .chain(x => Task.fail(x + 10))
     .chain(x => Task.succeed(x + 10))
 
-  const onSucceed = value => {
-    test.fail('Should have failed', value)
-    test.end()
-  }
-
-  const onFail = error => {
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
     test.isEqual(error, 15)
-    test.end()
   }
-
-  task.fork(onSucceed, onFail)
 })
 
-test('test fail(e).chain(f).chain(g).chain(h)', test => {
+test("test fail(e).chain(f).chain(g).chain(h)", async test => {
   const double = x => x * 2
-  const task =
-    Task.fail('Boom')
+  const task = Task.fail("Boom")
     .chain(x => Task.succeed(double(x)))
     .chain(x => Task.succeed(double(x)))
     .chain(x => Task.succeed(double(x)))
 
-  const onFail = error => {
-    test.isEqual(error, 'Boom')
-    test.end()
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed")
+  } catch (error) {
+    test.isEqual(error, "Boom")
   }
-
-  const onSucceed = value => {
-    test.fail('Should have failed')
-    test.end()
-  }
-
-  task.fork(onSucceed, onFail)
 })
 
-test('test succeed(a).chain(f).chain(g).chain(h)', test => {
+test("test succeed(a).chain(f).chain(g).chain(h)", async test => {
   const double = x => x * 2
-  const task =
-    Task.succeed(2)
+  const task = Task.succeed(2)
     .chain(x => Task.succeed(double(x)))
     .chain(x => Task.succeed(double(x)))
     .chain(x => Task.succeed(double(x)))
 
-  const onSucceed = value => {
-    test.isEqual(value, 16)
-    test.end()
+  const value = await Task.toPromise(task)
+
+  test.isEqual(value, 16)
+})
+
+test("test io.suceeded(x).chain", async test => {
+  const task = Task.io((succeed, fail) => succeed(5)).chain(x =>
+    Task.succeed(x + 10)
+  )
+  const value = await Task.toPromise(task)
+
+  test.isEqual(value, 15)
+})
+
+test("test io.failed(x).chain", async test => {
+  const task = Task.io((succeed, fail) => fail("Boom")).chain(x =>
+    Task.succeed(x + 10)
+  )
+
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, "Boom")
   }
+})
 
-  const onFail = error => {
-    test.fail('Should have succeeded', error)
-    test.end()
+test("test io return fail(x) from .chain", async test => {
+  const task = Task.io((succeed, fail) => succeed(5)).chain(x =>
+    Task.fail(x + 10)
+  )
+
+  try {
+    const value = await Task.toPromise(task)
+
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, 15)
   }
+})
 
-  task.fork(onSucceed, onFail)
+test("test io return fail() then succeed() from .chain", async test => {
+  const task = Task.io((succeed, fail) => succeed(5))
+    .chain(x => Task.fail(x + 10))
+    .chain(x => Task.succeed(x + 10))
+
+  try {
+    const value = await Task.toPromise(task)
+
+    test.fail("Should have failed", value)
+  } catch (error) {
+    test.isEqual(error, 15)
+  }
+})
+
+test("test io fail(e).chain(f).chain(g).chain(h)", async test => {
+  const double = x => x * 2
+  const task = Task.io((succeed, fail) => fail("Boom"))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+
+  try {
+    const value = await Task.toPromise(task)
+    test.fail("Should have failed")
+  } catch (error) {
+    test.isEqual(error, "Boom")
+  }
+})
+
+test("test io succeed(a).chain(f).chain(g).chain(h)", async test => {
+  const double = x => x * 2
+  const task = Task.io((succeed, fail) => succeed(2))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+    .chain(x => Task.succeed(double(x)))
+
+  const value = await Task.toPromise(task)
+
+  test.isEqual(value, 16)
 })
