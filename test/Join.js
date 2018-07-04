@@ -1,13 +1,13 @@
 // @flow
 
 import Task from "../"
-import Thread from "../lib/Thread/Executor"
+import ThreadPool from "@task.flow/thread-pool"
 import test from "blue-tape"
 
 test(".couple succeed", async test => {
   const task = Task.succeed("hi").couple(Task.succeed(2))
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { ok: ["hi", 2] })
 })
@@ -15,7 +15,7 @@ test(".couple succeed", async test => {
 test(".couple fail#1", async test => {
   const task = Task.fail("hi").couple(Task.succeed(2))
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: "hi" })
 })
@@ -23,7 +23,7 @@ test(".couple fail#1", async test => {
 test(".couple fail#2", async test => {
   const task = Task.succeed("hi").couple(Task.fail(2))
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: 2 })
 })
@@ -31,7 +31,7 @@ test(".couple fail#2", async test => {
 test(".couple fail#1,2", async test => {
   const task = Task.fail("hi").couple(Task.fail(2))
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: "hi" })
 })
@@ -47,7 +47,7 @@ test(".couple async fail#1,2", async test => {
     })
   )
 
-  const promise = Thread.promise(task).then(ok, error)
+  const promise = ThreadPool.promise(task).then(ok, error)
 
   driver2.fail("second")
 
@@ -62,7 +62,7 @@ test(".couple async fail#1,2", async test => {
 test("Taks.join succeed", async test => {
   const task = Task.join((a, b) => [a, b], Task.succeed("hi"), Task.succeed(2))
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { ok: ["hi", 2] })
 })
@@ -74,7 +74,7 @@ test("Task.join3 succeed", async test => {
     Task.succeed(2),
     Task.succeed({ x: 1 })
   )
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { ok: ["hi", 2, { x: 1 }] })
 })
@@ -87,7 +87,7 @@ test("Task.join3 fail#1", async test => {
     Task.succeed({ x: 1 })
   )
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: "hi" })
 })
@@ -100,7 +100,7 @@ test("Task.join3 fail#2", async test => {
     Task.succeed({ x: 1 })
   )
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: 2 })
 })
@@ -113,7 +113,7 @@ test("Task.join3 fail#3", async test => {
     Task.fail({ x: 1 })
   )
 
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { error: { x: 1 } })
 })
@@ -136,7 +136,7 @@ test("Task.join3 async succeed", async test => {
     })
   )
 
-  const promise = Thread.promise(task).then(ok, error)
+  const promise = ThreadPool.promise(task).then(ok, error)
 
   await sleep(5)
   driver2.succeed({ x: 2 })
@@ -169,7 +169,7 @@ test("Task.join3 async fail#3", async test => {
     })
   )
 
-  const promise = Thread.promise(task)
+  const promise = ThreadPool.promise(task)
 
   await sleep(10)
   driver2.succeed({ x: 2 })
@@ -193,7 +193,7 @@ test("Task.join4 succeed", async test => {
     Task.succeed({ x: 1 }),
     Task.succeed(null)
   )
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { ok: ["hi", 2, { x: 1 }, null] })
 })
@@ -220,7 +220,7 @@ test("Task.join4 async succeed", async test => {
     })
   )
 
-  const promise = Thread.promise(task).then(ok, error)
+  const promise = ThreadPool.promise(task).then(ok, error)
 
   await sleep(3)
   driver2.succeed({ x: 2 })
@@ -247,7 +247,7 @@ test("Task.join5 succeed", async test => {
     Task.succeed(null),
     Task.succeed(true)
   )
-  const result = await Thread.promise(task).then(ok, error)
+  const result = await ThreadPool.promise(task).then(ok, error)
 
   test.isEquivalent(result, { ok: ["hi", 2, { x: 1 }, null, true] })
 })
@@ -278,7 +278,7 @@ test("Task.join5 async fail#3", async test => {
     })
   )
 
-  const promise = Thread.promise(task).then(ok, error)
+  const promise = ThreadPool.promise(task).then(ok, error)
 
   await sleep(10)
   driver2.succeed({ x: 2 })

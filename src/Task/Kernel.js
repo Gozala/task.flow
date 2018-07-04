@@ -9,7 +9,7 @@ import type {
   Fail,
   Poll,
   Task
-} from "task.type.flow"
+} from "@task.flow/type"
 import type { Execute, Cancel } from "../Future/IO"
 import { tuple } from "tuple.flow"
 import Pool from "pool.flow"

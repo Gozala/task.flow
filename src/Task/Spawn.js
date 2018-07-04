@@ -1,6 +1,6 @@
 // @flow
 
-import type { Thread, Park, Future, Task, Poll } from "task.type.flow"
+import type { Thread, Park, Future, Task, Poll } from "@task.flow/type"
 import { succeed, Kernel } from "./Kernel"
 import Pool from "pool.flow"
 import type { Lifecycle } from "pool.flow"

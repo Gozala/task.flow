@@ -9,7 +9,7 @@ import type {
   Fail,
   Wait,
   Task
-} from "task.type.flow"
+} from "@task.flow/type"
 
 import { nil } from "./Poll"
 import {

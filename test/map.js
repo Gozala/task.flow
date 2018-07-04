@@ -1,7 +1,7 @@
 /* @flow */
 
 import Task from "../"
-import Thread from "../lib/Thread/Executor"
+import ThreadPool from "@task.flow/thread-pool"
 import test from "blue-tape"
 
 test("map succeed", async test => {
@@ -9,7 +9,7 @@ test("map succeed", async test => {
     .map(x => x + 10)
     .map(x => x + 1)
 
-  const value = await Thread.promise(task)
+  const value = await ThreadPool.promise(task)
   test.isEqual(value, 17)
 })
 
@@ -19,7 +19,7 @@ test("test map fail", async test => {
     .map(x => x + 1)
 
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
     test.fail("Should not succeed", value)
   } catch (error) {
     test.isEqual(error, "Boom!")
@@ -32,7 +32,7 @@ test("test task success mapped twice", async test => {
   })
     .map(x => x + 10)
     .map(x => x + 1)
-  const value = await Thread.promise(task)
+  const value = await ThreadPool.promise(task)
 
   test.isEqual(value, 15)
 })
@@ -45,7 +45,7 @@ test("test task failure mapped twice", async test => {
     .map(x => x + 1)
 
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
     test.fail("Should not succeed", value)
   } catch (error) {
     test.isEqual(error, "Boom!")
@@ -59,6 +59,6 @@ test("test task map via function", async test => {
   const task2 = Task.map(x => x + 10, task1)
   const task3 = Task.map(x => x + 1, task2)
 
-  const value = await Thread.promise(task3)
+  const value = await ThreadPool.promise(task3)
   test.isEqual(value, 15)
 })

@@ -12,6 +12,17 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
+"@task.flow/thread-pool@0.0.0":
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/@task.flow/thread-pool/-/thread-pool-0.0.0.tgz#883be52611b4de7ad673461c4d75d8f92ac18f15"
+  dependencies:
+    "@task.flow/type" "0.1.0"
+    pool.flow "0.2.0"
+
+"@task.flow/type@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@task.flow/type/-/type-0.1.0.tgz#cd7a859cc7d109985d4e3ee3faf5f70cdf568be7"
+
 JSONStream@^1.0.3:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-1.3.2.tgz#c102371b6ec3a7cf3b847ca00c20bb0fce4c6dea"
@@ -3800,6 +3811,10 @@ pool.flow@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/pool.flow/-/pool.flow-0.1.0.tgz#73ec915129c88b7e93f0716492482f65c10eddaf"
 
+pool.flow@0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/pool.flow/-/pool.flow-0.2.0.tgz#bed65ddff1f22657863f2654345b25fdd597af8a"
+
 posix-character-classes@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
@@ -4725,10 +4740,6 @@ tar@^4:
     mkdirp "^0.5.0"
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
-
-task.type.flow@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/task.type.flow/-/task.type.flow-0.1.0.tgz#9e1100b5f7e16c2a675498116ca66c91eaa9b293"
 
 through2-filter@^2.0.0:
   version "2.0.0"

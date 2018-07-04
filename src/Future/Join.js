@@ -1,6 +1,6 @@
 // @flow
 
-import type { Future, Poll } from "task.type.flow"
+import type { Future, Poll } from "@task.flow/type"
 import { succeed } from "../Poll"
 import Pool from "pool.flow"
 import type { Lifecycle } from "pool.flow"

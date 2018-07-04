@@ -1,7 +1,7 @@
 /* @flow */
 
 import Task from "../"
-import Thread from "../lib/Thread/Executor"
+import ThreadPool from "@task.flow/thread-pool"
 import test from "blue-tape"
 
 test("test map3 succeed", async test => {
@@ -12,7 +12,7 @@ test("test map3 succeed", async test => {
     Task.succeed(5)
   )
 
-  const value = await Thread.promise(task)
+  const value = await ThreadPool.promise(task)
   test.isEqual(value, 12)
 })
 
@@ -25,7 +25,7 @@ test("test map3 fail 1st", async test => {
   )
 
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
 
     test.fail("Should have failed", value)
   } catch (error) {
@@ -41,7 +41,7 @@ test("test map3 fail 2nd", async test => {
     Task.succeed(5)
   )
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "second fail")
@@ -56,7 +56,7 @@ test("test map3 fail 3rd", async test => {
     Task.fail("third fail")
   )
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "third fail")
@@ -71,7 +71,7 @@ test("test map3 fail all", async test => {
     Task.fail("thrid fail")
   )
   try {
-    const value = await Thread.promise(task)
+    const value = await ThreadPool.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "first fail")
