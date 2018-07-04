@@ -1,11 +1,12 @@
 /* @flow */
 
 import Task from "../"
+import Thread from "../lib/Thread/Executor"
 import test from "blue-tape"
 
 test("test map2 succeed", async test => {
   const task = Task.map2((a, b) => a + b, Task.succeed(3), Task.succeed(4))
-  const value = await Task.toPromise(task)
+  const value = await Thread.promise(task)
   test.isEqual(value, 7)
 })
 
@@ -17,7 +18,7 @@ test("test map2 fail 1st", async test => {
   )
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "first fail")
@@ -32,7 +33,7 @@ test("test map2 fail 2nd", async test => {
   )
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "second fail")
@@ -47,7 +48,7 @@ test("test map2 fail both", async test => {
   )
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.isEqual(error, "first fail")

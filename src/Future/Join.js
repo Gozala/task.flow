@@ -4,11 +4,12 @@ import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
 import type { Poll } from "../Poll"
 import { succeed } from "../Poll"
-import Pool from "../Pool"
-import type { Lifecycle } from "../Pool"
+import Pool from "pool.flow"
+import type { Lifecycle } from "pool.flow"
 
-class Join<x, a, b> implements Future<x, [a, b]> {
-  static pool: Pool<Join<x, a, b>> = new Pool()
+class Join<x, a, b, ab> implements Future<x, ab> {
+  static pool: Pool<Join<x, a, b, ab>> = new Pool()
+  combine: (a, b) => ab
   left: Future<x, a>
   right: Future<x, b>
   leftResult: Poll<x, a>
@@ -34,54 +35,51 @@ class Join<x, a, b> implements Future<x, [a, b]> {
       this.right.abort()
     }
   }
-  poll(): Poll<x, [a, b]> {
-    const { leftResult, rightResult, left, right } = this
+  poll(): Poll<x, ab> {
+    const { leftResult, rightResult, left, right, combine } = this
 
-    if (leftResult != null) {
-      if (leftResult.isOk) {
-        if (rightResult != null) {
-          if (rightResult.isOk) {
-            this.delete()
-            return succeed([leftResult.value, rightResult.value])
-          } else {
-            this.delete()
-            return rightResult
-          }
-        } else {
-          const result = this.right.poll()
-          if (result == null) {
-            return null
-          } else {
-            if (result.isOk) {
-              this.delete()
-              return succeed([leftResult.value, result.value])
-            } else {
-              this.delete()
-              return result
-            }
-          }
-        }
+    if (leftResult != null && rightResult != null) {
+      if (!leftResult.isOk) {
+        return leftResult
+      } else if (!rightResult.isOk) {
+        return rightResult
       } else {
         this.delete()
+        return succeed(combine(leftResult.value, rightResult.value))
+      }
+    } else if (leftResult != null) {
+      if (!leftResult.isOk) {
         return leftResult
+      } else {
+        const rightResult = right.poll()
+        this.rightResult = rightResult
+        return rightResult ? this.poll() : null
+      }
+    } else if (rightResult != null) {
+      if (!rightResult.isOk) {
+        return rightResult
+      } else {
+        const leftResult = left.poll()
+        this.leftResult = leftResult
+        return leftResult ? this.poll() : null
       }
     } else {
-      const result = left.poll()
-      this.leftResult = result
-      if (result != null) {
-        return this.poll()
-      } else {
-        return null
-      }
+      const leftResult = left.poll()
+      const rightResult = right.poll()
+      this.leftResult = leftResult
+      this.rightResult = rightResult
+      return leftResult || rightResult ? this.poll() : null
     }
   }
 }
 
-export default <x, a, b>(
+export default <x, a, b, ab>(
+  combine: (a, b) => ab,
   left: Future<x, a>,
   right: Future<x, b>
-): Future<x, [a, b]> => {
+): Future<x, ab> => {
   const self = Join.pool.new(Join)
+  self.combine = combine
   self.left = left
   self.right = right
   self.leftResult = null

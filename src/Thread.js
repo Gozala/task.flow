@@ -1,6 +1,6 @@
 // @flow
 
-import type { Lifecycle } from "./Pool"
+import type { Lifecycle } from "pool.flow"
 
 export type ThreadID = Lifecycle
 

@@ -1,35 +1,31 @@
 // @flow
 
-import Task from "task.flow"
-import Executor from "./src/Thread/Executor"
+// import Task from "task.flow"
+import type { Task } from "task.flow"
+import type { CurrentProcess } from "./src/Process/Process"
+import { succeed, fail } from "task.flow"
+import Process from "./src/Process/Process"
+import ThreadPool from "./src/Thread/Executor"
 
-// let fork = Fork.pool(
-//   Task.succeed(5)
-//     .map(value => {
-//       value //?
-//     })
-//     .recover(err => {
-//       err //?
-//     })
-// ) //?$
+const work = (process: CurrentProcess<string, string>): Task<empty, void> => {
+  const receive = () => {
+    return process.reader
+      .read()
+      .chain(message => {
+        console.log("read", message)
+        return process.writer.write(`echo ${message}`)
+      })
+      .capture(error => process.exit())
+      .chain(receive)
+  }
 
-// fork.poll()
+  return receive()
+}
 
-Executor.pool //?
+const main = Process.spawn(work).chain(process => {
+  return process.writer.write("hello").chain(() => {
+    return process.reader.read()
+  })
+})
 
-Task.toPromise(Task.succeed(5)) //?
-Executor.pool //?
-Task.toPromise(Task.fail("Boom")).catch(Error) //?
-
-Executor.pool //?
-
-Task.toPromise(Task.succeed(5).chain(x => Task.succeed(x + 10))) //?
-
-const u3 = Task.map3(
-  (a, b) => [a, b],
-  Task.succeed(1),
-  Task.succeed(2),
-  Task.succeed(3)
-)
-
-Task.toPromise(u3)
+ThreadPool.promise(main) //?

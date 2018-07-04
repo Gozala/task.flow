@@ -5,8 +5,8 @@ import type { Future } from "./Future"
 import type { Poll } from "../Poll"
 import type { Task } from "../Task"
 import { succeed, fail } from "../Poll"
-import Pool from "../Pool"
-import type { Lifecycle } from "../Pool"
+import Pool from "pool.flow"
+import type { Lifecycle } from "pool.flow"
 
 export type Execute<x, a, handle> = (
   succeed: (a) => void,
@@ -54,7 +54,7 @@ class IO<x, a, handle> implements Future<x, a> {
     }
   }
   poll(): Poll<x, a> {
-    const { state } = this
+    const { state, threadID } = this
     if (state != null) {
       this.delete()
       return state

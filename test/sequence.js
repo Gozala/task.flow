@@ -1,6 +1,7 @@
 // @flow
 
 import Task from "../"
+import Thread from "../lib/Thread/Executor"
 import test from "blue-tape"
 
 test("test sequence", async test => {
@@ -11,7 +12,7 @@ test("test sequence", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.isEquivalent(value, [1, 2, 3])
   } catch (error) {
     test.fail("Should succeeded")
@@ -26,7 +27,7 @@ test("test sequence fail first", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.equal(error, "first")
@@ -41,7 +42,7 @@ test("test sequence fail second", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.equal(error, "second")
@@ -56,7 +57,7 @@ test("test sequence fail third", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.equal(error, "third")
@@ -71,7 +72,7 @@ test("test sequence fail second & third", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.equal(error, "second")
@@ -95,7 +96,7 @@ test("test sequence of 12", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.isEquivalent(value, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
   } catch (error) {
     test.fail("Should succeeded")
@@ -119,7 +120,7 @@ test("test sequence of 12 with failed", async test => {
   ])
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.equal(error, "sixth")

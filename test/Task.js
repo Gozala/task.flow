@@ -32,9 +32,8 @@ const testFutureAPI = (test, task) => {
   test.ok(isFunction(task.capture), "task.capture is method")
   test.ok(isFunction(task.format), "task.format is method")
   test.ok(isFunction(task.recover), "task.recover is method")
-  test.ok(isFunction(task.select), "task.spawn is method")
-  test.ok(isFunction(task.join), "task.spawn is method")
-  test.ok(isFunction(task.spawn), "task.spawn is method")
+  test.ok(isFunction(task.select), "task.select is method")
+  test.ok(isFunction(task.couple), "task.couple is method")
 }
 
 const testSucceedAPI = (test, task, value) => {

@@ -1,18 +1,18 @@
 // @flow
 
-import type { Lifecycle } from "../Pool"
+import type { Lifecycle } from "pool.flow"
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "../Future"
 import type { Succeed, Fail, Poll } from "../Poll"
 import type { Task } from "./Task"
 import type { Execute, Cancel } from "../Future/IO"
-import Pool from "../Pool"
+import { tuple } from "tuple.flow"
+import Pool from "pool.flow"
 import then from "../Future/Then"
 import catcher from "../Future/Catch"
 import selector from "../Future/Select"
 import joiner from "../Future/Join"
 import futureIO from "../Future/IO"
-import Executor from "../Thread/Executor"
 
 export const fail = <x, a>(error: x): Task<x, a> & Future<x, a> & Fail<x> =>
   new Failure(error)
@@ -58,20 +58,20 @@ export const select = <x, a>(
   secondary: Task<x, a>
 ): Task<x, a> => new Select(primary, secondary)
 
-export const join = <x, a, b>(
+export const couple = <x, a, b>(
   left: Task<x, a>,
   right: Task<x, b>
-): Task<x, [a, b]> => new Join(left, right)
+): Task<x, [a, b]> => new Join(tuple, left, right)
+
+export const join = <x, a, b, ab>(
+  combine: (a, b) => ab,
+  left: Task<x, a>,
+  right: Task<x, b>
+): Task<x, ab> => new Join(combine, left, right)
 
 export const Kernel = Object.freeze(
   class Kernel<x, a> implements Task<x, a> {
     +spawn: (thread: Thread, id: ThreadID) => Future<x, a>
-    then<b>(
-      onFulfill?: (value: a) => Promise<b> | b,
-      onReject?: (error: x) => Promise<b> | b
-    ): Promise<b> {
-      return Executor.toPromise(this).then(onFulfill, onReject)
-    }
 
     map<b>(f: a => b): Task<x, b> {
       return new Map(this, f)
@@ -91,8 +91,8 @@ export const Kernel = Object.freeze(
     select(task: Task<x, a>): Task<x, a> {
       return new Select(this, task)
     }
-    join<b>(task: Task<x, b>): Task<x, [a, b]> {
-      return new Join(this, task)
+    couple<b>(task: Task<x, b>): Task<x, [a, b]> {
+      return new Join(tuple, this, task)
     }
 
     static fail = fail
@@ -242,16 +242,22 @@ class Select<x, a> extends Kernel<x, a> implements Task<x, a> {
   }
 }
 
-class Join<x, a, b> extends Kernel<x, [a, b]> implements Task<x, [a, b]> {
+class Join<x, a, b, ab> extends Kernel<x, ab> implements Task<x, ab> {
+  combine: (a, b) => ab
   left: Task<x, a>
   right: Task<x, b>
-  constructor(left: Task<x, a>, right: Task<x, b>) {
+  constructor(combine: (a, b) => ab, left: Task<x, a>, right: Task<x, b>) {
     super()
+    this.combine = combine
     this.left = left
     this.right = right
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, [a, b]> {
-    return joiner(this.left.spawn(thread, id), this.right.spawn(thread, id))
+  spawn(thread: Thread, id: ThreadID): Future<x, ab> {
+    return joiner(
+      this.combine,
+      this.left.spawn(thread, id),
+      this.right.spawn(thread, id)
+    )
   }
 }
 

@@ -3,8 +3,8 @@
 import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
 import type { Poll } from "../Poll"
-import Pool from "../Pool"
-import type { Lifecycle } from "../Pool"
+import Pool from "pool.flow"
+import type { Lifecycle } from "pool.flow"
 
 class Select<x, a> implements Future<x, a> {
   static pool: Pool<Select<x, a>> = new Pool()

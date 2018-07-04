@@ -3,8 +3,14 @@
 import type { Task } from "../Task"
 import { map, succeed } from "./Kernel"
 import { map2, map3, map4, map5 } from "./Map"
-import { array1, array2, array3, array4, array5 } from "../Array"
-import { push } from "../Array"
+import {
+  array1,
+  array2,
+  array3,
+  array4,
+  array5,
+  push
+} from "mutable-array.flow"
 
 const empty: Task<any, any[]> = succeed(Object.freeze([]))
 

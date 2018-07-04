@@ -4,7 +4,7 @@ import type { Thread, ThreadID } from "../Thread"
 import type { Future } from "./Future"
 import type { Task } from "../Task"
 import type { Poll } from "../Poll"
-import Pool from "../Pool"
+import Pool from "pool.flow"
 
 export interface Handler<x, y, a> {
   handle(x): Task<y, a>;

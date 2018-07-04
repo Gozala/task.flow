@@ -18,15 +18,15 @@
   "devDependencies": {
     "alias-quokka-plugin": "^0.1.0",
     "babel-cli": "^6.26.0",
-    "babel-preset-flow-node": "^1.0.2",
+    "babel-preset-flow-node": "^2.0.1",
     "babel-register": "^6.26.0",
     "blue-tape": "^1.0.0",
-    "documentation": "^5.3.1",
-    "flow-bin": "^0.61.0",
-    "flow-copy-source": "^1.2.1",
+    "documentation": "^8.0.0",
+    "flow-bin": "^0.75.0",
+    "flow-copy-source": "^2.0.1",
     "husky": "^0.14.0",
-    "lint-staged": "^6.0.0",
-    "prettier": "^1.9.2"
+    "lint-staged": "^7.2.0",
+    "prettier": "^1.13.7"
   },
   "scripts": {
     "test": "npm run test:flow && npm run test:tape",
@@ -53,12 +53,17 @@
       "task.flow": "src/Task"
     },
     "pro": true,
-    "babel": true,
+    "babel": {
+      "env": "development"
+    },
     "plugins": [
       "alias-quokka-plugin"
     ]
   },
   "dependencies": {
+    "mutable-array.flow": "0.0.1",
+    "pool.flow": "0.1.0",
+    "tuple.flow": "0.1.0",
     "unreachable": "0.2.0"
   }
 }

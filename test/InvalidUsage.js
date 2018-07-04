@@ -1,6 +1,7 @@
 /* @flow */
 
 import Task from "../"
+import Thread from "../lib/Thread/Executor"
 import test from "blue-tape"
 
 test("test if fail called twice second call is ignored", async test => {
@@ -10,7 +11,7 @@ test("test if fail called twice second call is ignored", async test => {
   })
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.ok(error instanceof Error)
@@ -33,7 +34,7 @@ test("test if fail called twice second (delayed) call is ignored", async test =>
   })
 
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.ok(error instanceof Error)
@@ -45,7 +46,7 @@ test("test if fail called twice second (delayed) call is ignored", async test =>
     remote.fail2 = fail
   })
 
-  const promise = Task.toPromise(task2)
+  const promise = Thread.promise(task2)
 
   remote.fail1(Error("BagaBoom"))
   remote.succeed2("fine")
@@ -63,7 +64,7 @@ test("test if succeeds called twice second call is ignored", async test => {
     succeed({ beep: "bop", bar: "baz" })
     succeed(5)
   })
-  const value = await Task.toPromise(task)
+  const value = await Thread.promise(task)
   test.isEquivalent(value, { beep: "bop", bar: "baz" })
 })
 
@@ -73,7 +74,7 @@ test("test task succeed, then fail is called later is ignored", async test => {
     fail(5)
   })
 
-  const value = await Task.toPromise(task)
+  const value = await Thread.promise(task)
   test.isEquivalent(value, { beep: "bop", bar: "baz" })
 })
 
@@ -83,7 +84,7 @@ test("test task fail, then succeed is called later is ignored", async test => {
     succeed({ data: "text" })
   })
   try {
-    const value = await Task.toPromise(task)
+    const value = await Thread.promise(task)
     test.fail("Should have failed", value)
   } catch (error) {
     test.ok(error instanceof Error)

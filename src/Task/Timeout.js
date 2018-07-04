@@ -2,9 +2,9 @@
 import type { ThreadID, Thread } from "../Thread"
 import type { Future } from "../Future"
 import type { Task } from "./Task"
-import Pool from "../Pool"
+import Pool from "pool.flow"
 import Kernel from "./Kernel"
-import type { Lifecycle } from "../Pool"
+import type { Lifecycle } from "pool.flow"
 import type { Succeed, Poll } from "../Poll"
 import { nil } from "../Poll"
 
@@ -25,7 +25,7 @@ class Timeout extends Kernel<empty, void> {
 class TimeoutFuture implements Future<empty, void> {
   static pool: Pool<TimeoutFuture> = new Pool()
   result: ?Succeed<void> = null
-  id: number
+  id: TimeoutID
   lifecycle: Lifecycle
   static timeout(thread: Thread, id: ThreadID, timer: TimeoutFuture) {
     timer.result = nil
@@ -48,7 +48,7 @@ class TimeoutFuture implements Future<empty, void> {
   }
   delete() {
     this.result = null
-    this.id = 0
+    delete this.id
     TimeoutFuture.pool.delete(this)
   }
 }

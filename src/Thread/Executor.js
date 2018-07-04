@@ -3,14 +3,13 @@
 import type { ThreadID, Thread } from "../Thread"
 import type { Future } from "../Future"
 import type { Task } from "../Task"
-import Pool from "../Pool"
-import type { Lifecycle } from "../Pool"
-import { succeed } from "../Task/Kernel"
+import Pool from "pool.flow"
+import type { Lifecycle } from "pool.flow"
 
-export default class Executor<x, a> implements Thread {
-  static pool: Pool<Executor<x, a>> = new Pool()
+export default class Executor implements Thread {
+  static pool: Pool<Executor> = new Pool()
   isParked: boolean
-  future: Future<x, a>
+  future: Future<empty, void>
   lifecycle: Lifecycle
   recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
@@ -19,12 +18,17 @@ export default class Executor<x, a> implements Thread {
     delete this.future
     Executor.pool.delete(this)
   }
-  static spawn(task: Task<empty, void>): void {
-    const fork = Executor.pool.new(Executor)
-    fork.future = task.spawn(fork, fork.lifecycle)
-    fork.work()
+  perform(task: Task<empty, void>): void {
+    this.future = task.spawn(this, this.lifecycle)
+    this.work()
   }
-  static toPromise<x, a>(task: Task<x, a>): Promise<a> {
+  static new(): Executor {
+    return Executor.pool.new(Executor)
+  }
+  static spawn(task: Task<empty, void>): void {
+    Executor.new().perform(task)
+  }
+  static promise<x, a>(task: Task<x, a>): Promise<a> {
     return new Promise((resolve, reject) =>
       Executor.spawn(task.map(resolve).recover(reject))
     )
