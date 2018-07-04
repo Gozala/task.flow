@@ -1,10 +1,8 @@
 /* @flow */
 
 import Pool from "pool.flow"
+import type { Future, Poll, Thread, Park } from "task.type.flow"
 import type { Lifecycle } from "pool.flow"
-import type { Thread, ThreadID } from "../Thread"
-import type { Future } from "../Future"
-import type { Poll } from "../Poll"
 import type { Buffer } from "./Buffer/Buffer"
 
 export class Pipe<message> {
@@ -30,15 +28,11 @@ export class Pipe<message> {
 
 export class FutureWrite<message> implements Future<WriteError<message>, void> {
   static pool: Pool<FutureWrite<message>> = new Pool()
-  static new(
-    payload: message,
-    thread: Thread,
-    threadID: ThreadID
-  ): FutureWrite<message> {
+  static new(payload: message, thread: Thread): FutureWrite<message> {
     const self = FutureWrite.pool.new(FutureWrite)
     self.payload = payload
     self.thread = thread
-    self.threadID = threadID
+    self.park = thread.park()
     self.state = null
     return self
   }
@@ -46,7 +40,7 @@ export class FutureWrite<message> implements Future<WriteError<message>, void> {
   payload: message
   lifecycle: Lifecycle
   thread: Thread
-  threadID: ThreadID
+  park: Park
   state: "abort" | Poll<WriteError<message>, void>
   recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
@@ -54,10 +48,10 @@ export class FutureWrite<message> implements Future<WriteError<message>, void> {
   delete() {
     delete this.state
     delete this.thread
-    delete this.threadID
+    delete this.park
   }
   notify() {
-    this.thread.notify(this.threadID)
+    this.thread.unpark(this.park)
   }
   poll(): Poll<WriteError<message>, void> {
     const { state } = this
@@ -82,17 +76,17 @@ export class FutureWrite<message> implements Future<WriteError<message>, void> {
 
 export class FutureRead<message> implements Future<ReadError, message> {
   static pool: Pool<FutureRead<message>> = new Pool()
-  static new(thread: Thread, threadID: ThreadID): FutureRead<message> {
+  static new(thread: Thread): FutureRead<message> {
     const self = FutureRead.pool.new(FutureRead)
     self.thread = thread
-    self.threadID = threadID
+    self.park = thread.park()
     self.state = null
     return self
   }
 
   lifecycle: Lifecycle
   thread: Thread
-  threadID: ThreadID
+  park: Park
   state: "abort" | Poll<ReadError, message>
   recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
@@ -100,10 +94,10 @@ export class FutureRead<message> implements Future<ReadError, message> {
   delete() {
     delete this.state
     delete this.thread
-    delete this.threadID
+    delete this.park
   }
   notify() {
-    this.thread.notify(this.threadID)
+    this.thread.unpark(this.park)
   }
   poll(): Poll<ReadError, message> {
     const { state } = this

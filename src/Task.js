@@ -1,9 +1,15 @@
 // @flow
 
-import type { Thread, ThreadID } from "./Thread"
-import type { Future } from "./Future"
-import type { Poll, Succeed, Fail, Wait } from "./Poll"
-import type { Task } from "./Task/Task"
+import type {
+  Thread,
+  Park,
+  Future,
+  Poll,
+  Succeed,
+  Fail,
+  Wait,
+  Task
+} from "task.type.flow"
 
 import { nil } from "./Poll"
 import {
@@ -24,7 +30,7 @@ import { map2, map3, map4, map5 } from "./Task/Map"
 import { sequence } from "./Task/Sequence"
 import { join3, join4, join5 } from "./Task/Join"
 
-export type { Task, Thread, ThreadID, Future, Poll, Succeed, Fail, Wait }
+export type { Task, Thread, Park, Future, Poll, Succeed, Fail, Wait }
 
 export {
   nil,

@@ -1,8 +1,6 @@
 /* @flow */
 
-import type { Thread, ThreadID } from "./Thread"
-import type { Future } from "./Future"
-import type { Task } from "./Task"
+import type { Thread, Future, Task, Park } from "task.type.flow"
 import Kernel from "./Task"
 import Buffer from "./Channel/Buffer/Buffer"
 import FixedBuffer from "./Channel/Buffer/FixedBuffer"
@@ -48,12 +46,12 @@ class Read<x, message> extends Kernel<x | ReadError, message> {
     super()
     this.pipe = pipe
   }
-  spawn(thread: Thread, threadID: ThreadID): Future<x | ReadError, message> {
+  spawn(thread: Thread): Future<x | ReadError, message> {
     const { pipe } = this
     const { buffer, readQueue } = pipe
     let chunk = buffer.read()
     if (chunk instanceof Buffer.ReadError) {
-      const futureRead = FutureRead.new(thread, threadID)
+      const futureRead = FutureRead.new(thread)
       readQueue.push(futureRead)
       enqueue(pipe)
       return futureRead
@@ -72,10 +70,7 @@ class Write<x, message> extends Kernel<x | WriteError<message>, void> {
     this.pipe = pipe
     this.payload = payload
   }
-  spawn(
-    thread: Thread,
-    threadID: ThreadID
-  ): Future<x | WriteError<message>, void> {
+  spawn(thread: Thread): Future<x | WriteError<message>, void> {
     const { pipe, payload } = this
     const { buffer, closed, writeQueue } = pipe
     // If pipe is closed or buffer is full, create a pending write. This will
@@ -84,7 +79,7 @@ class Write<x, message> extends Kernel<x | WriteError<message>, void> {
     // - Writing to full channel queues writes until next read.
     if (closed || buffer.write(payload) instanceof Buffer.WriteError) {
       console.log("queue write", pipe)
-      const futureWrite = FutureWrite.new(payload, thread, threadID)
+      const futureWrite = FutureWrite.new(payload, thread)
       writeQueue.push(futureWrite)
       console.log(pipe)
       enqueue(pipe)
@@ -104,7 +99,7 @@ class Close<error, message> extends Kernel<error, void> {
     super()
     this.pipe = pipe
   }
-  spawn(thread: Thread, threadID: ThreadID): Future<error, void> {
+  spawn(thread: Thread): Future<error, void> {
     const { pipe } = this
     pipe.closed = true
     enqueue(pipe)

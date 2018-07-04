@@ -1,10 +1,8 @@
 // @flow
 
-import type { Thread, ThreadID } from "../Thread"
-import type { Future } from "./Future"
-import type { Task } from "../Task"
-import type { Poll } from "../Poll"
+import type { Task, Future, Thread, Poll } from "task.type.flow"
 import Pool from "pool.flow"
+import type { Lifecycle } from "pool.flow"
 
 export interface Handler<x, y, a> {
   handle(x): Task<y, a>;
@@ -16,9 +14,8 @@ class Catch<x, y, a> implements Future<y, a> {
   left: Future<x, a>
   right: null | Future<y, a>
   thread: Thread
-  threadID: ThreadID
-  lifecycle: ThreadID
-  recycle(lifecycle: ThreadID) {
+  lifecycle: Lifecycle
+  recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
   }
   poll(): Poll<y, a> {
@@ -37,9 +34,7 @@ class Catch<x, y, a> implements Future<y, a> {
           this.delete()
           return left
         } else {
-          this.right = this.handler
-            .handle(left.error)
-            .spawn(this.thread, this.threadID)
+          this.right = this.handler.handle(left.error).spawn(this.thread)
 
           const right = this.right.poll()
           if (right != null) {
@@ -65,7 +60,6 @@ class Catch<x, y, a> implements Future<y, a> {
     this.abort()
     delete this.handler
     delete this.thread
-    delete this.threadID
     delete this.lifecycle
     Catch.pool.delete(this)
   }
@@ -74,14 +68,12 @@ class Catch<x, y, a> implements Future<y, a> {
 export default <x, y, a>(
   task: Task<x, a>,
   handler: Handler<x, y, a>,
-  thread: Thread,
-  threadID: ThreadID
+  thread: Thread
 ): Future<y, a> => {
   const self = Catch.pool.new(Catch)
   self.handler = handler
   self.thread = thread
-  self.threadID = threadID
   self.right = null
-  self.left = task.spawn(thread, threadID)
+  self.left = task.spawn(thread)
   return self
 }

@@ -1,13 +1,8 @@
 // @flow
 
-import type { Succeed } from "./Poll/Succeed"
-import type { Fail } from "./Poll/Fail"
-import succeed from "./Poll/Succeed"
-import fail from "./Poll/Fail"
+import type { Succeed, Fail } from "task.type.flow"
+import * as Poll from "./Poll/Poll"
 
-export type Wait = void | null
-export type Poll<x, a> = Wait | Fail<x> | Succeed<a>
-export type { Succeed, Fail }
-
+export const fail = <x>(error: x): Fail<x> => new Poll.Fail(error)
+export const succeed = <a>(value: a): Succeed<a> => new Poll.Succeed(value)
 export const nil: Succeed<void> = succeed()
-export { succeed, fail }

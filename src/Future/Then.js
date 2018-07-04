@@ -1,9 +1,6 @@
 // @flow
 
-import type { Thread, ThreadID } from "../Thread"
-import type { Poll } from "../Poll"
-import type { Future } from "./Future"
-import type { Task } from "../Task"
+import type { Thread, Future, Poll, Task } from "task.type.flow"
 import Pool from "pool.flow"
 import type { Lifecycle } from "pool.flow"
 
@@ -17,7 +14,6 @@ class Then<x, a, b> implements Future<x, b> {
   left: Future<x, a>
   right: null | Future<x, b>
   thread: Thread
-  threadID: ThreadID
   lifecycle: Lifecycle
   recycle(lifecycle: Lifecycle) {
     this.lifecycle = lifecycle
@@ -28,7 +24,6 @@ class Then<x, a, b> implements Future<x, b> {
     delete this.left
     delete this.right
     delete this.thread
-    delete this.threadID
     Then.pool.delete(this)
   }
   poll(): Poll<x, b> {
@@ -44,9 +39,7 @@ class Then<x, a, b> implements Future<x, b> {
       const left = this.left.poll()
       if (left != null) {
         if (left.isOk) {
-          this.right = this.handler
-            .handle(left.value)
-            .spawn(this.thread, this.threadID)
+          this.right = this.handler.handle(left.value).spawn(this.thread)
 
           const right = this.right.poll()
           if (right != null) {
@@ -76,13 +69,11 @@ class Then<x, a, b> implements Future<x, b> {
 export default <x, a, b>(
   task: Task<x, a>,
   handler: Handler<x, a, b>,
-  thread: Thread,
-  threadID: ThreadID
+  thread: Thread
 ): Then<x, a, b> => {
   const self = Then.pool.new(Then)
   self.thread = thread
-  self.threadID = threadID
   self.handler = handler
-  self.left = task.spawn(thread, threadID)
+  self.left = task.spawn(thread)
   return self
 }

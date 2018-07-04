@@ -1,12 +1,9 @@
 // @flow
 
-import type { ThreadID, Thread } from "../Thread"
-import type { Future } from "../Future"
-import type { Task } from "./Task"
+import type { Thread, Park, Future, Task, Poll } from "task.type.flow"
 import { succeed, Kernel } from "./Kernel"
 import Pool from "pool.flow"
 import type { Lifecycle } from "pool.flow"
-import type { Poll } from "../Poll"
 
 class Process {
   kill(): Task<empty, void> {
@@ -20,7 +17,7 @@ class Spawn extends Kernel<empty, void> {
     super()
     this.task = task
   }
-  spawn(thread: Thread, id: ThreadID): Future<empty, void> {
+  spawn(thread: Thread): Future<empty, void> {
     const future = SpawnFuture.pool.new(SpawnFuture)
     return future
   }

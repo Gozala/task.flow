@@ -4726,6 +4726,10 @@ tar@^4:
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
 
+task.type.flow@0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/task.type.flow/-/task.type.flow-0.1.0.tgz#9e1100b5f7e16c2a675498116ca66c91eaa9b293"
+
 through2-filter@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/through2-filter/-/through2-filter-2.0.0.tgz#60bc55a0dacb76085db1f9dae99ab43f83d622ec"

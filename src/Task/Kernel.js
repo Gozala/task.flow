@@ -1,10 +1,15 @@
 // @flow
 
 import type { Lifecycle } from "pool.flow"
-import type { Thread, ThreadID } from "../Thread"
-import type { Future } from "../Future"
-import type { Succeed, Fail, Poll } from "../Poll"
-import type { Task } from "./Task"
+import type {
+  Thread,
+  Park,
+  Future,
+  Succeed,
+  Fail,
+  Poll,
+  Task
+} from "task.type.flow"
 import type { Execute, Cancel } from "../Future/IO"
 import { tuple } from "tuple.flow"
 import Pool from "pool.flow"
@@ -71,7 +76,7 @@ export const join = <x, a, b, ab>(
 
 export const Kernel = Object.freeze(
   class Kernel<x, a> implements Task<x, a> {
-    +spawn: (thread: Thread, id: ThreadID) => Future<x, a>
+    +spawn: (thread: Thread) => Future<x, a>
 
     map<b>(f: a => b): Task<x, b> {
       return new Map(this, f)
@@ -148,8 +153,8 @@ class IO<x, a, handle> extends Kernel<x, a> implements Task<x, a> {
     this.execute = execute
     this.cancel = cancel
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, a> {
-    return futureIO(this.execute, this.cancel, thread, id)
+  spawn(thread: Thread): Future<x, a> {
+    return futureIO(this.execute, this.cancel, thread)
   }
 }
 
@@ -161,8 +166,8 @@ class Chain<x, a, b> extends Kernel<x, b> implements Task<x, b> {
     this.task = task
     this.handle = handle
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, b> {
-    return then(this.task, this, thread, id)
+  spawn(thread: Thread): Future<x, b> {
+    return then(this.task, this, thread)
   }
 }
 
@@ -178,8 +183,8 @@ class Map<x, a, b> extends Kernel<x, b> implements Task<x, b> {
   handle(value: a): Task<x, b> {
     return succeed(this.f(value))
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, b> {
-    return then(this.task, this, thread, id)
+  spawn(thread: Thread): Future<x, b> {
+    return then(this.task, this, thread)
   }
 }
 
@@ -191,8 +196,8 @@ class Capture<x, y, a> extends Kernel<y, a> implements Task<y, a> {
     this.task = task
     this.handle = handle
   }
-  spawn(thread: Thread, id: ThreadID): Future<y, a> {
-    return catcher(this.task, this, thread, id)
+  spawn(thread: Thread): Future<y, a> {
+    return catcher(this.task, this, thread)
   }
 }
 
@@ -207,8 +212,8 @@ class Recover<x, a> extends Kernel<empty, a> implements Task<empty, a> {
     this.task = task
     this.recoverError = recoverError
   }
-  spawn(thread: Thread, id: ThreadID): Future<empty, a> {
-    return catcher(this.task, this, thread, id)
+  spawn(thread: Thread): Future<empty, a> {
+    return catcher(this.task, this, thread)
   }
 }
 
@@ -223,8 +228,8 @@ class Format<x, y, a> extends Kernel<y, a> implements Task<y, a> {
     this.task = task
     this.formatError = formatError
   }
-  spawn(thread: Thread, id: ThreadID): Future<y, a> {
-    return catcher(this.task, this, thread, id)
+  spawn(thread: Thread): Future<y, a> {
+    return catcher(this.task, this, thread)
   }
 }
 
@@ -236,9 +241,9 @@ class Select<x, a> extends Kernel<x, a> implements Task<x, a> {
     this.left = left
     this.right = right
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, a> {
+  spawn(thread: Thread): Future<x, a> {
     const { left, right } = this
-    return selector(left.spawn(thread, id), right.spawn(thread, id))
+    return selector(left.spawn(thread), right.spawn(thread))
   }
 }
 
@@ -252,11 +257,11 @@ class Join<x, a, b, ab> extends Kernel<x, ab> implements Task<x, ab> {
     this.left = left
     this.right = right
   }
-  spawn(thread: Thread, id: ThreadID): Future<x, ab> {
+  spawn(thread: Thread): Future<x, ab> {
     return joiner(
       this.combine,
-      this.left.spawn(thread, id),
-      this.right.spawn(thread, id)
+      this.left.spawn(thread),
+      this.right.spawn(thread)
     )
   }
 }

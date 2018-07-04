@@ -1,11 +1,8 @@
 // @flow
-import type { ThreadID, Thread } from "../Thread"
-import type { Future } from "../Future"
-import type { Task } from "./Task"
+import type { Thread, Park, Future, Task, Succeed, Poll } from "task.type.flow"
 import Pool from "pool.flow"
 import Kernel from "./Kernel"
 import type { Lifecycle } from "pool.flow"
-import type { Succeed, Poll } from "../Poll"
 import { nil } from "../Poll"
 
 class Timeout extends Kernel<empty, void> {
@@ -14,10 +11,16 @@ class Timeout extends Kernel<empty, void> {
     super()
     this.time = time
   }
-  spawn(thread: Thread, id: ThreadID): Future<empty, void> {
+  spawn(thread: Thread): Future<empty, void> {
     const timer = TimeoutFuture.pool.new(TimeoutFuture)
     timer.result = null
-    timer.id = setTimeout(TimeoutFuture.timeout, this.time, thread, id, timer)
+    timer.id = setTimeout(
+      TimeoutFuture.timeout,
+      this.time,
+      thread,
+      thread.park(),
+      timer
+    )
     return timer
   }
 }
@@ -27,9 +30,9 @@ class TimeoutFuture implements Future<empty, void> {
   result: ?Succeed<void> = null
   id: TimeoutID
   lifecycle: Lifecycle
-  static timeout(thread: Thread, id: ThreadID, timer: TimeoutFuture) {
+  static timeout(thread: Thread, park: Park, timer: TimeoutFuture) {
     timer.result = nil
-    thread.notify(id)
+    thread.unpark(park)
   }
   abort() {
     clearTimeout(this.id)

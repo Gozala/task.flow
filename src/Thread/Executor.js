@@ -1,8 +1,6 @@
 // @flow
 
-import type { ThreadID, Thread } from "../Thread"
-import type { Future } from "../Future"
-import type { Task } from "../Task"
+import type { Task, Future, Thread, Park } from "task.type.flow"
 import Pool from "pool.flow"
 import type { Lifecycle } from "pool.flow"
 
@@ -10,8 +8,8 @@ export default class Executor implements Thread {
   static pool: Pool<Executor> = new Pool()
   isParked: boolean
   future: Future<empty, void>
-  lifecycle: Lifecycle
-  recycle(lifecycle: Lifecycle) {
+  lifecycle: Park
+  recycle(lifecycle: Park) {
     this.lifecycle = lifecycle
   }
   delete() {
@@ -19,7 +17,7 @@ export default class Executor implements Thread {
     Executor.pool.delete(this)
   }
   perform(task: Task<empty, void>): void {
-    this.future = task.spawn(this, this.lifecycle)
+    this.future = task.spawn(this)
     this.work()
   }
   static new(): Executor {
@@ -45,14 +43,17 @@ export default class Executor implements Thread {
       this.isParked = true
     }
   }
-  notify(id: ThreadID): void {
-    if (this.lifecycle === id) {
-      this.unpark()
+  park(): Park {
+    return this.lifecycle
+  }
+  unpark(park: Park): void {
+    if (this.lifecycle === park) {
+      this.awake()
     } else {
       throw Error("Thread is no longer avaliable")
     }
   }
-  async unpark() {
+  async awake() {
     if (this.isParked) {
       this.isParked = false
       await Promise.resolve()

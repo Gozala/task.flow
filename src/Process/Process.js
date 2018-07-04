@@ -1,10 +1,7 @@
 // @flow
 
-import type { Thread, ThreadID } from "../Thread"
-import type { Task } from "../Task"
-import type { Future } from "../Future"
+import type { Thread, Park, Poll, Future, Task } from "task.type.flow"
 import type { Lifecycle } from "pool.flow"
-import type { Poll } from "../Poll"
 import Executor from "../Thread/Executor"
 import Kernel from "../Task"
 import Pool from "pool.flow"

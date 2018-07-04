@@ -29,7 +29,7 @@
     "prettier": "^1.13.7"
   },
   "scripts": {
-    "test": "npm run test:flow && npm run test:tape",
+    "test": "npm run build && npm run test:flow && npm run test:tape",
     "test:tape": "blue-tape -r babel-register 'test/**/*.js'",
     "test:flow": "flow check",
     "build:clear": "rm -rf lib",
@@ -38,7 +38,7 @@
     "build:api": "documentation readme --section=API src/match.js",
     "build:docs": "documentation build --document-exported src/** -f html --o docs",
     "build": "npm run build:node && npm run build:types",
-    "prepublish": "npm run build && npm test",
+    "prepublishOnly": "npm test",
     "precommit": "lint-staged",
     "start": "flow-copy-source --watch --verbose src lib & babel --watch --out-dir lib src"
   },
@@ -63,6 +63,7 @@
   "dependencies": {
     "mutable-array.flow": "0.0.1",
     "pool.flow": "0.1.0",
+    "task.type.flow": "0.1.0",
     "tuple.flow": "0.1.0",
     "unreachable": "0.2.0"
   }
