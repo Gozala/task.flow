@@ -20,7 +20,7 @@ test("test map fail", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should not succeed", value)
+    test.fail("Should not succeed")
   } catch (error) {
     test.isEqual(error, "Boom!")
   }
@@ -46,7 +46,7 @@ test("test task failure mapped twice", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should not succeed", value)
+    test.fail("Should not succeed")
   } catch (error) {
     test.isEqual(error, "Boom!")
   }

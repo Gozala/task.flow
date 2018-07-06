@@ -1,11 +1,11 @@
 // @flow
 import type { Thread, Park, Future, Task, Succeed, Poll } from "@task.flow/type"
 import Pool from "pool.flow"
-import Kernel from "./Kernel"
+import { TaskObject } from "./Task"
 import type { Lifecycle } from "pool.flow"
 import { nil } from "../Poll"
 
-class Timeout extends Kernel<empty, void> {
+class Timeout extends TaskObject<empty, void> {
   time: number
   constructor(time: number) {
     super()

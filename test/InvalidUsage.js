@@ -12,7 +12,7 @@ test("test if fail called twice second call is ignored", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.ok(error instanceof Error)
     test.isEqual(error.message, "Boom")
@@ -35,7 +35,7 @@ test("test if fail called twice second (delayed) call is ignored", async test =>
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.ok(error instanceof Error)
     test.isEqual(error.message, "Boom")
@@ -55,7 +55,7 @@ test("test if fail called twice second (delayed) call is ignored", async test =>
     const value = await promise
     test.isEqual(value, "fine")
   } catch (error) {
-    test.fail("Shuld have passed", error)
+    test.fail("Shuld have passed")
   }
 })
 
@@ -85,7 +85,7 @@ test("test task fail, then succeed is called later is ignored", async test => {
   })
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.ok(error instanceof Error)
     test.isEqual(error.message, "Boom")

@@ -1,5 +1,5 @@
 {
-  "name": "task.flow",
+  "name": "@task.flow/task",
   "version": "0.1.0",
   "description": "Library for describing async operations as data & managing them as explicit effects",
   "keywords": [
@@ -16,7 +16,7 @@
   "repository": "https://github.com/Gozala/task.flow",
   "license": "MIT",
   "devDependencies": {
-    "@task.flow/thread-pool": "0.0.0",
+    "@task.flow/thread-pool": "0.2.3",
     "alias-quokka-plugin": "^0.1.0",
     "babel-cli": "^6.26.0",
     "babel-preset-flow-node": "^2.0.1",
@@ -62,9 +62,9 @@
     ]
   },
   "dependencies": {
-    "@task.flow/type": "0.1.0",
+    "@task.flow/type": "0.2.1",
     "mutable-array.flow": "0.0.1",
-    "pool.flow": "0.1.0",
+    "pool.flow": "0.2.0",
     "tuple.flow": "0.1.0",
     "unreachable": "0.2.0"
   }

@@ -16,7 +16,7 @@ test("test fail format", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "OOPS")
   }
@@ -36,7 +36,7 @@ test("test io.fail format", async test => {
   )
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "OOPS")
   }

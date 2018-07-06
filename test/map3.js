@@ -27,7 +27,7 @@ test("test map3 fail 1st", async test => {
   try {
     const value = await ThreadPool.promise(task)
 
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "first fail")
   }
@@ -42,7 +42,7 @@ test("test map3 fail 2nd", async test => {
   )
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "second fail")
   }
@@ -57,7 +57,7 @@ test("test map3 fail 3rd", async test => {
   )
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "third fail")
   }
@@ -72,7 +72,7 @@ test("test map3 fail all", async test => {
   )
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "first fail")
   }

@@ -7,7 +7,6 @@ export class Fail<x> {
 }
 
 export class Succeed<a> {
-  isReady: true = true
   isOk: true = true
   value: a
   constructor(value: a) {

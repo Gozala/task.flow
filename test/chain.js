@@ -18,7 +18,7 @@ test("test failed(x).chain", async test => {
   try {
     const value = await ThreadPool.promise(task)
 
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "Boom")
   }
@@ -30,7 +30,7 @@ test("test return fail(x) from .chain", async test => {
   try {
     const value = await ThreadPool.promise(task)
 
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, 15)
   }
@@ -43,7 +43,7 @@ test("test return fail() then succeed() from .chain", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, 15)
   }
@@ -92,7 +92,7 @@ test("test io.failed(x).chain", async test => {
 
   try {
     const value = await ThreadPool.promise(task)
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, "Boom")
   }
@@ -106,7 +106,7 @@ test("test io return fail(x) from .chain", async test => {
   try {
     const value = await ThreadPool.promise(task)
 
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, 15)
   }
@@ -120,7 +120,7 @@ test("test io return fail() then succeed() from .chain", async test => {
   try {
     const value = await ThreadPool.promise(task)
 
-    test.fail("Should have failed", value)
+    test.fail("Should have failed")
   } catch (error) {
     test.isEqual(error, 15)
   }
